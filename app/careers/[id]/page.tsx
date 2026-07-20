@@ -2,9 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
-import BrandThumb from "@/components/BrandThumb";
 import CareersDetailActions from "@/components/CareersDetailActions";
-import { getBrands, getCareersJobs, getJobs } from "@/lib/data";
+import { getCareersJobs } from "@/lib/data";
 import type { CareersJob } from "@/lib/types";
 
 const VALUE_ICONS = ["ph-fill ph-sparkle", "ph-fill ph-chart-bar", "ph-fill ph-rocket-launch"];
@@ -212,18 +211,6 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
       ? INTERN_VALUES_FALLBACK
       : DEFAULT_VALUES_FALLBACK;
 
-  let relatedBrandJobs: { id: string; title: string; jobCategory: string; brandName: string }[] = [];
-  if (job.showRelated) {
-    const [brandJobs, brands] = await Promise.all([getJobs(), getBrands()]);
-    const brandById = new Map(brands.map((b) => [b.id, b]));
-    relatedBrandJobs = brandJobs.slice(0, 4).map((bj) => ({
-      id: bj.id,
-      title: bj.title,
-      jobCategory: bj.jobCategory,
-      brandName: brandById.get(bj.brandId)?.name ?? "브랜드",
-    }));
-  }
-
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <SiteNav />
@@ -415,35 +402,6 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                 인턴 종료 후 취업할 확률이 높은 채용 공고 확인하기{" "}
                 <i className="ph-bold ph-arrow-right" />
               </Link>
-            </div>
-          </section>
-        )}
-
-        {relatedBrandJobs.length > 0 && (
-          <section className="mt-[52px]">
-            <h2 className="mb-4 text-xl font-extrabold tracking-tight">
-              이런 브랜드 공고도 확인해보세요
-            </h2>
-            <div className="grid gap-2.5">
-              {relatedBrandJobs.map((rj) => (
-                <Link
-                  key={rj.id}
-                  href={`/jobs/${rj.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-inherit no-underline hover:bg-gray-50"
-                >
-                  <BrandThumb
-                    name={rj.brandName}
-                    className="h-9 w-9 flex-none rounded-lg"
-                    textClassName="text-sm"
-                    initialOnly
-                  />
-                  <span className="flex-none rounded-lg bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-600">
-                    {rj.jobCategory}
-                  </span>
-                  <span className="min-w-0 flex-1 truncate text-sm font-bold">{rj.title}</span>
-                  <i className="ph-bold ph-caret-right text-gray-300" />
-                </Link>
-              ))}
             </div>
           </section>
         )}
