@@ -117,7 +117,7 @@ export default async function CareersPage() {
         </div>
 
         <h2 className="mb-1 text-xl font-extrabold tracking-tight">인턴 채용 프로세스</h2>
-        <p className="mb-[18px] text-sm text-gray-500">지원부터 최종 합격까지, 1주일 이내로 진행됩니다.</p>
+        <p className="mb-[18px] text-sm text-gray-500">지원부터 최종 합격까지, 2주일 이내로 진행됩니다.</p>
         <div className="mb-[52px] flex gap-2.5 overflow-x-auto pb-2">
           {INTERN_STEPS.map((s) => (
             <div

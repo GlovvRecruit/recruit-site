@@ -37,7 +37,9 @@ export default function AboutPage() {
             ABOUT US
           </p>
           <h1 className="mb-4 mt-3.5 max-w-[720px] text-[44px] font-extrabold leading-[1.18] tracking-tight">
-            뷰티 브랜드가 가장 많이 이용하는 곳에서,
+            대부분의 뷰티 브랜드가 이용하는{" "}
+            <br className="sm:hidden" />
+            <span className="whitespace-nowrap">글로브/플릭스에서</span>
             <br />
             <span className="brand-gradient-text">함께 성장할 사람</span>을 찾습니다
           </h1>

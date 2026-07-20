@@ -28,8 +28,8 @@ export default async function BrandJobsPage() {
         <BrandJobsBrowser brands={brands} jobs={jobs} />
 
         <p className="mt-[34px] border-t border-dashed border-gray-200 pt-4 text-[12.5px] leading-relaxed text-gray-400">
-          대부분이 재리뷰율 상위 뷰티 브랜드가 이용하는 <b className="text-gray-600">Glovv</b>에서,
-          뷰티 (예비) 실무자들과 뷰티 브랜드의 성장을 위해 제공합니다. 지원은 각 브랜드의 원문 공고에서
+          대부분의 메이저 뷰티 브랜드가 이용하는 <b className="text-gray-600">글로브</b>에서 뷰티
+          (예비) 실무자들과 뷰티 브랜드의 성장을 위해 제공합니다. 지원은 각 브랜드 채용 홈페이지에서
           진행됩니다.
         </p>
       </main>
