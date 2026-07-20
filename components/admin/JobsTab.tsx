@@ -2,57 +2,37 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { JOB_CATEGORIES, type JobCategory } from "@/lib/types";
 
-interface BrandRow {
+interface CareersJobRow {
   id: string;
-  name: string;
-  profile_ai: string | null;
-  profile_reviewed: boolean;
-}
-
-interface JobRow {
-  id: string;
-  brand_id: string;
   title: string;
-  job_category: JobCategory;
-  career_level: string;
-  region: string;
-  requirements_summary: string;
-  responsibilities_summary: string;
-  compensation_summary: string | null;
-  source_url: string;
+  tag: string;
+  summary: string;
+  employment: string | null;
+  location: string | null;
   status: "open" | "closed";
 }
 
-const emptyJobForm = {
-  brandId: "",
+const emptyForm = {
   title: "",
-  jobCategory: JOB_CATEGORIES[0] as JobCategory,
-  careerLevel: "",
-  region: "",
-  requirementsSummary: "",
-  responsibilitiesSummary: "",
-  compensationSummary: "",
-  sourceUrl: "",
+  tag: "",
+  summary: "",
+  employment: "",
+  location: "",
 };
 
 export default function JobsTab() {
   const supabase = createClient();
-  const [brands, setBrands] = useState<BrandRow[]>([]);
-  const [jobs, setJobs] = useState<JobRow[]>([]);
-  const [newBrandName, setNewBrandName] = useState("");
-  const [newBrandProfile, setNewBrandProfile] = useState("");
-  const [jobForm, setJobForm] = useState(emptyJobForm);
+  const [jobs, setJobs] = useState<CareersJobRow[]>([]);
+  const [form, setForm] = useState(emptyForm);
   const [loading, setLoading] = useState(true);
 
   async function reload() {
-    const [b, j] = await Promise.all([
-      supabase.from("brands").select("*").order("name"),
-      supabase.from("jobs").select("*").order("created_at", { ascending: false }),
-    ]);
-    setBrands((b.data as BrandRow[]) ?? []);
-    setJobs((j.data as JobRow[]) ?? []);
+    const { data } = await supabase
+      .from("careers_jobs")
+      .select("*")
+      .order("created_at", { ascending: false });
+    setJobs((data as CareersJobRow[]) ?? []);
     setLoading(false);
   }
 
@@ -62,257 +42,123 @@ export default function JobsTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function addBrand() {
-    if (!newBrandName.trim()) return;
-    await supabase.from("brands").insert({
-      name: newBrandName.trim(),
-      profile_ai: newBrandProfile.trim() || null,
-      profile_reviewed: !!newBrandProfile.trim(),
-    });
-    setNewBrandName("");
-    setNewBrandProfile("");
-    reload();
-  }
-
-  async function toggleReviewed(brand: BrandRow) {
-    await supabase
-      .from("brands")
-      .update({ profile_reviewed: !brand.profile_reviewed })
-      .eq("id", brand.id);
-    reload();
-  }
-
-  async function deleteBrand(id: string) {
-    if (!confirm("이 브랜드와 소속 공고를 모두 삭제할까요?")) return;
-    await supabase.from("brands").delete().eq("id", id);
-    reload();
-  }
-
   async function addJob() {
-    if (!jobForm.brandId || !jobForm.title.trim() || !jobForm.sourceUrl.trim()) {
-      alert("브랜드, 제목, 원문 링크는 필수예요.");
+    if (!form.title.trim() || !form.tag.trim() || !form.summary.trim()) {
+      alert("제목·태그·소개는 필수예요.");
       return;
     }
-    await supabase.from("jobs").insert({
-      brand_id: jobForm.brandId,
-      title: jobForm.title.trim(),
-      job_category: jobForm.jobCategory,
-      career_level: jobForm.careerLevel.trim(),
-      region: jobForm.region.trim(),
-      requirements_summary: jobForm.requirementsSummary.trim(),
-      responsibilities_summary: jobForm.responsibilitiesSummary.trim(),
-      compensation_summary: jobForm.compensationSummary.trim() || null,
-      source_url: jobForm.sourceUrl.trim(),
+    await supabase.from("careers_jobs").insert({
+      title: form.title.trim(),
+      tag: form.tag.trim(),
+      summary: form.summary.trim(),
+      employment: form.employment.trim() || null,
+      location: form.location.trim() || null,
       status: "open",
     });
-    setJobForm(emptyJobForm);
+    setForm(emptyForm);
     reload();
   }
 
-  async function toggleJobStatus(job: JobRow) {
+  async function toggleStatus(job: CareersJobRow) {
     await supabase
-      .from("jobs")
+      .from("careers_jobs")
       .update({ status: job.status === "open" ? "closed" : "open" })
       .eq("id", job.id);
     reload();
   }
 
-  async function deleteJob(id: string) {
+  async function remove(id: string) {
     if (!confirm("이 공고를 삭제할까요?")) return;
-    await supabase.from("jobs").delete().eq("id", id);
+    await supabase.from("careers_jobs").delete().eq("id", id);
     reload();
   }
-
-  const brandById = new Map(brands.map((b) => [b.id, b]));
 
   if (loading) return <p className="text-sm text-gray-400">불러오는 중...</p>;
 
   return (
-    <div className="grid gap-8">
-      <section>
-        <h2 className="mb-3 text-lg font-extrabold tracking-tight">브랜드 관리</h2>
-        <div className="mb-4 rounded-2xl border border-gray-200 bg-white p-[18px]">
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-[1fr_1.5fr_auto]">
-            <input
-              value={newBrandName}
-              onChange={(e) => setNewBrandName(e.target.value)}
-              placeholder="브랜드명"
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-            <input
-              value={newBrandProfile}
-              onChange={(e) => setNewBrandProfile(e.target.value)}
-              placeholder="AI 매력도 한 줄 (검수 완료로 등록됨)"
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
+    <div>
+      <h1 className="mb-1.5 text-[22px] font-extrabold tracking-tight">자사 채용 공고 관리</h1>
+      <p className="mb-5 text-[13px] text-gray-400">
+        여기서는 Glovv/Flixx 자사 채용 공고만 관리해요. 타 뷰티 브랜드 공고(브랜드 공고 피드)는
+        브랜드 자사 채용 페이지에서 크롤링해 별도로 채워질 예정이에요.
+      </p>
+
+      <div className="mb-6 grid gap-2.5 rounded-2xl border border-gray-200 bg-white p-[18px]">
+        <input
+          value={form.title}
+          onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
+          placeholder="공고 제목 (예: 글로브 뷰티 인턴)"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        />
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+          <input
+            value={form.tag}
+            onChange={(e) => setForm((f) => ({ ...f, tag: e.target.value }))}
+            placeholder="태그 (예: 인턴, 마케팅)"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          />
+          <input
+            value={form.employment}
+            onChange={(e) => setForm((f) => ({ ...f, employment: e.target.value }))}
+            placeholder="고용 형태 (예: 인턴, 정규직)"
+            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+          />
+        </div>
+        <input
+          value={form.location}
+          onChange={(e) => setForm((f) => ({ ...f, location: e.target.value }))}
+          placeholder="근무지"
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        />
+        <textarea
+          value={form.summary}
+          onChange={(e) => setForm((f) => ({ ...f, summary: e.target.value }))}
+          placeholder="한 줄 소개"
+          rows={2}
+          className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
+        />
+        <button
+          type="button"
+          onClick={addJob}
+          className="rounded-lg py-2.5 text-sm font-extrabold text-white"
+          style={{ background: "var(--brand-gradient)" }}
+        >
+          공고 등록
+        </button>
+      </div>
+
+      <div className="grid gap-2">
+        {jobs.map((j) => (
+          <div
+            key={j.id}
+            className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3"
+          >
+            <span className="flex-none rounded-lg bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600">
+              {j.tag}
+            </span>
+            <span className="min-w-0 flex-1 truncate text-sm font-bold">{j.title}</span>
             <button
               type="button"
-              onClick={addBrand}
-              className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-bold text-white"
+              onClick={() => toggleStatus(j)}
+              className={
+                "flex-none rounded-lg px-2.5 py-1 text-xs font-bold " +
+                (j.status === "open"
+                  ? "bg-[rgba(18,161,80,.1)] text-[color:var(--success)]"
+                  : "bg-gray-100 text-gray-500")
+              }
             >
-              추가
+              {j.status === "open" ? "진행중" : "마감"}
+            </button>
+            <button
+              type="button"
+              onClick={() => remove(j.id)}
+              className="flex-none rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-bold text-gray-500"
+            >
+              삭제
             </button>
           </div>
-        </div>
-        <div className="grid gap-2">
-          {brands.map((b) => (
-            <div
-              key={b.id}
-              className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3"
-            >
-              <span className="w-32 flex-none truncate text-sm font-bold">{b.name}</span>
-              <span className="flex-1 truncate text-xs text-gray-500">
-                {b.profile_ai ?? "매력도 미등록"}
-              </span>
-              <button
-                type="button"
-                onClick={() => toggleReviewed(b)}
-                className={
-                  "flex-none rounded-lg px-2.5 py-1 text-xs font-bold " +
-                  (b.profile_reviewed
-                    ? "bg-[rgba(18,161,80,.1)] text-[color:var(--success)]"
-                    : "bg-gray-100 text-gray-500")
-                }
-              >
-                {b.profile_reviewed ? "검수완료" : "미검수"}
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteBrand(b.id)}
-                className="flex-none rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-bold text-gray-500"
-              >
-                삭제
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2 className="mb-3 text-lg font-extrabold tracking-tight">채용 공고 관리</h2>
-        <div className="mb-4 grid gap-2.5 rounded-2xl border border-gray-200 bg-white p-[18px]">
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <select
-              value={jobForm.brandId}
-              onChange={(e) => setJobForm((f) => ({ ...f, brandId: e.target.value }))}
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            >
-              <option value="">브랜드 선택</option>
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={jobForm.jobCategory}
-              onChange={(e) =>
-                setJobForm((f) => ({ ...f, jobCategory: e.target.value as JobCategory }))
-              }
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            >
-              {JOB_CATEGORIES.map((c) => (
-                <option key={c}>{c}</option>
-              ))}
-            </select>
-          </div>
-          <input
-            value={jobForm.title}
-            onChange={(e) => setJobForm((f) => ({ ...f, title: e.target.value }))}
-            placeholder="공고 제목"
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-          />
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <input
-              value={jobForm.careerLevel}
-              onChange={(e) => setJobForm((f) => ({ ...f, careerLevel: e.target.value }))}
-              placeholder="경력 (예: 신입, 경력 2년 이상)"
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-            <input
-              value={jobForm.region}
-              onChange={(e) => setJobForm((f) => ({ ...f, region: e.target.value }))}
-              placeholder="지역"
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-          </div>
-          <textarea
-            value={jobForm.responsibilitiesSummary}
-            onChange={(e) =>
-              setJobForm((f) => ({ ...f, responsibilitiesSummary: e.target.value }))
-            }
-            placeholder="업무 내용 요약"
-            rows={2}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-          />
-          <textarea
-            value={jobForm.requirementsSummary}
-            onChange={(e) => setJobForm((f) => ({ ...f, requirementsSummary: e.target.value }))}
-            placeholder="요구 경력 요약"
-            rows={2}
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-          />
-          <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
-            <input
-              value={jobForm.compensationSummary}
-              onChange={(e) =>
-                setJobForm((f) => ({ ...f, compensationSummary: e.target.value }))
-              }
-              placeholder="연봉·혜택 (선택, 없으면 비워두기)"
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-            <input
-              value={jobForm.sourceUrl}
-              onChange={(e) => setJobForm((f) => ({ ...f, sourceUrl: e.target.value }))}
-              placeholder="원문 링크 (https://...)"
-              className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-            />
-          </div>
-          <button
-            type="button"
-            onClick={addJob}
-            className="rounded-lg py-2.5 text-sm font-extrabold text-white"
-            style={{ background: "var(--brand-gradient)" }}
-          >
-            공고 등록
-          </button>
-        </div>
-
-        <div className="grid gap-2">
-          {jobs.map((j) => (
-            <div
-              key={j.id}
-              className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3"
-            >
-              <span className="flex-none rounded-lg bg-gray-100 px-2 py-1 text-[11px] font-bold text-gray-600">
-                {j.job_category}
-              </span>
-              <span className="min-w-0 flex-1 truncate text-sm font-bold">
-                {brandById.get(j.brand_id)?.name ?? "?"} · {j.title}
-              </span>
-              <button
-                type="button"
-                onClick={() => toggleJobStatus(j)}
-                className={
-                  "flex-none rounded-lg px-2.5 py-1 text-xs font-bold " +
-                  (j.status === "open"
-                    ? "bg-[rgba(18,161,80,.1)] text-[color:var(--success)]"
-                    : "bg-gray-100 text-gray-500")
-                }
-              >
-                {j.status === "open" ? "진행중" : "마감"}
-              </button>
-              <button
-                type="button"
-                onClick={() => deleteJob(j.id)}
-                className="flex-none rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-bold text-gray-500"
-              >
-                삭제
-              </button>
-            </div>
-          ))}
-        </div>
-      </section>
+        ))}
+      </div>
     </div>
   );
 }

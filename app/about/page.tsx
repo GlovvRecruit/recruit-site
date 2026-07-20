@@ -9,10 +9,10 @@ const METRICS = [
 ];
 
 const GLOVV_POINTS = [
-  "2,000+ 뷰티 브랜드 & 4,000+ 인플루언서 협업 경험",
-  "1분 만에 만드는 뷰티 AI 온보딩",
-  "대부분이 재리뷰율 상위 뷰티 브랜드가 이용",
-  "BEP 달성 · 일본·북미 시장 진출",
+  "대부분의 올리브영 입점 브랜드(2,000개+)가 이용하는 뷰티 릴스 플랫폼",
+  "4,000명+ 국내 인플루언서, 1,300명+ 일본 인플루언서가 매일 접속",
+  "출시 3개월 만에 BEP 달성, '25년 시리즈A 30억원 투자유치",
+  "일본 엔화·미국 달러 매출 발생 중, '26년 북미 진출 확대",
 ];
 
 const FLIXX_POINTS = [
@@ -37,12 +37,12 @@ export default function AboutPage() {
             ABOUT US
           </p>
           <h1 className="mb-4 mt-3.5 max-w-[720px] text-[44px] font-extrabold leading-[1.18] tracking-tight">
-            뷰티 브랜드가 가장 많이 오는 곳에서,
+            뷰티 브랜드가 가장 많이 이용하는 곳에서,
             <br />
             <span className="brand-gradient-text">함께 성장할 사람</span>을 찾습니다
           </h1>
           <p className="mb-7 max-w-[560px] text-base leading-relaxed text-gray-500">
-            글로브의 트렌드를 만드는 스마트린, 그리고 대부분이 재리뷰율 상위 뷰티 브랜드의
+            글로브의 트렌드를 만드는 앤마들린, 그리고 대부분이 재리뷰율 상위 뷰티 브랜드의
             채용 소식을 한곳에서 만나보세요.
           </p>
           <div className="flex flex-wrap gap-3">
@@ -50,14 +50,14 @@ export default function AboutPage() {
               href="/brand-jobs"
               className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-6 py-3.5 text-[15px] font-bold text-white no-underline"
             >
-              브랜드 공고 보러가기 <i className="ph-bold ph-arrow-right" />
+              타 뷰티 브랜드 공고 보러가기 <i className="ph-bold ph-arrow-right" />
             </Link>
             <Link
               href="/careers"
               className="inline-flex items-center gap-2 rounded-xl px-6 py-3.5 text-[15px] font-bold text-white no-underline shadow-[0_8px_22px_rgba(250,60,100,0.3)]"
               style={{ background: "var(--brand-gradient)" }}
             >
-              Glovv 자사 채용 <i className="ph-bold ph-arrow-right" />
+              글로브/플릭스 채용 <i className="ph-bold ph-arrow-right" />
             </Link>
           </div>
         </div>
@@ -80,7 +80,7 @@ export default function AboutPage() {
 
         <h2 className="mb-1.5 text-[26px] font-extrabold tracking-tight">우리가 만드는 서비스</h2>
         <p className="mb-6 text-[15px] text-gray-500">
-          스마트린 주식회사. 두 개의 서비스를 운영합니다.
+          앤마들린 주식회사. 두 개의 서비스를 운영합니다.
         </p>
         <div className="grid grid-cols-[repeat(auto-fit,minmax(320px,1fr))] gap-5">
           <div className="card-shadow relative overflow-hidden rounded-[20px] border border-gray-200 bg-white p-7">
@@ -145,7 +145,7 @@ export default function AboutPage() {
         >
           <div>
             <h3 className="mb-1.5 text-[22px] font-extrabold tracking-tight">
-              스마트린과 함께 성장하실래요?
+              앤마들린과 함께 성장하실래요?
             </h3>
             <p className="m-0 text-[14.5px] opacity-90">
               진행 중인 포지션이 없어도 인재풀에 등록해두세요.

@@ -2,9 +2,28 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import CareersDetailActions from "@/components/CareersDetailActions";
-import { getBrands, getCareersJobs } from "@/lib/data";
+import { getCareersJobs } from "@/lib/data";
 
-const VALUES = [
+// 글로브 인턴 채용(https://glovvrecruit.github.io/intern/) 공식 문구 기준.
+const INTERN_VALUES = [
+  {
+    icon: "ph-fill ph-sparkle",
+    title: "뷰티 업계에서 인정받는 실력",
+    desc: "2,000개+ 뷰티 브랜드 마케터, 4,000명+ 인플루언서와 긴밀하게 협업하며 실력을 쌓습니다.",
+  },
+  {
+    icon: "ph-fill ph-chart-bar",
+    title: "데이터 기반 콘텐츠 인사이트",
+    desc: "3만개+ 릴스 콘텐츠를 분석하며 어떤 상황에 어떤 콘텐츠가 효과적인지 체득합니다.",
+  },
+  {
+    icon: "ph-fill ph-rocket-launch",
+    title: "성장하는 기업에서 키우는 문제 해결력",
+    desc: "출시 1년만에 연매출 100억원을 달성한 기업에서 전략·운영을 경험하며 문제 해결력을 기릅니다.",
+  },
+];
+
+const DEFAULT_VALUES = [
   {
     icon: "ph-fill ph-rocket-launch",
     title: "빠른 성장",
@@ -22,7 +41,36 @@ const VALUES = [
   },
 ];
 
-const SECTIONS = [
+const INTERN_SECTIONS = [
+  {
+    title: "이런 일을 해요",
+    items: [
+      "3만개 이상 영상 중 광고 효율이 높은 콘텐츠를 분석해 인사이트 도출",
+      "브랜드 영상 가이드라인에 대한 피드백 미팅 제공 및 온보딩 진행",
+      "브랜드 미팅을 통해 페인 포인트 파악 및 문제 해결",
+      "인플루언서가 제작한 영상 퀄리티 컨트롤 및 플랫폼 정착 지원",
+    ],
+  },
+  {
+    title: "이런 분을 찾아요",
+    items: [
+      "논리적으로 사고하고 커뮤니케이션 능력이 뛰어난 분",
+      "빠른 실행력과 책임감·열정을 가진 분 (경력 무관)",
+      "뷰티 업계에서 커리어 성장을 꿈꾸는 분",
+      "로켓 성장하는 스타트업을 직접 경험해보고 싶은 분",
+    ],
+  },
+  {
+    title: "근무 조건 · 혜택",
+    items: [
+      "이태원역 1분 거리 사무실 · 오전 9시~오후 6시 근무",
+      "시급 11,000원(월 환산 세전 약 230만원), 성과에 따라 인상",
+      "인턴십 1년 완료 시 대표 추천서 작성 + 정규직 전환 검토",
+    ],
+  },
+];
+
+const DEFAULT_SECTIONS = [
   {
     title: "이런 일을 해요",
     items: [
@@ -47,11 +95,43 @@ const SECTIONS = [
   },
 ];
 
+// 함께하는 주요 뷰티 브랜드 (glovvrecruit.github.io/intern 로고 그리드 기준)
+const PARTNER_BRANDS: { name: string; style?: React.CSSProperties }[] = [
+  { name: "AMOREPACIFIC", style: { textTransform: "uppercase", letterSpacing: "0.02em" } },
+  { name: "LG생활건강" },
+  { name: "MUSINSA BEAUTY", style: { textTransform: "uppercase" } },
+  { name: "Banila co", style: { fontFamily: "Georgia, 'Times New Roman', serif", fontStyle: "italic", fontWeight: 400 } },
+  { name: "VT Cosmetics", style: { textTransform: "uppercase", letterSpacing: "0.05em" } },
+  { name: "LANEIGE", style: { textTransform: "uppercase", letterSpacing: "0.08em" } },
+  { name: "마녀공장" },
+  { name: "goodal", style: { letterSpacing: "0.02em" } },
+  { name: "MEDIHEAL", style: { textTransform: "uppercase", letterSpacing: "0.05em" } },
+  { name: "AESTURA", style: { textTransform: "uppercase", letterSpacing: "0.05em" } },
+  { name: "Torriden", style: { textTransform: "uppercase", letterSpacing: "0.02em" } },
+  { name: "ROUND LAB", style: { textTransform: "uppercase", letterSpacing: "0.05em" } },
+  { name: "rom&nd", style: { fontStyle: "italic", letterSpacing: "-0.02em", fontWeight: 800 } },
+  { name: "hince", style: { fontWeight: 300, textTransform: "uppercase", letterSpacing: "0.12em" } },
+  { name: "PERIPERA", style: { textTransform: "uppercase", letterSpacing: "0.08em" } },
+  { name: "CLIO", style: { textTransform: "uppercase", letterSpacing: "0.05em" } },
+  { name: "Centellian24", style: { letterSpacing: "0.02em" } },
+  { name: "SKIN1004", style: { textTransform: "uppercase", letterSpacing: "0.02em" } },
+  { name: "COSRX", style: { textTransform: "uppercase", letterSpacing: "0.05em" } },
+  { name: "Age 20's", style: { letterSpacing: "0.02em" } },
+  { name: "정샘물" },
+  { name: "FWEE", style: { textTransform: "uppercase", letterSpacing: "0.05em" } },
+  { name: "무지개맨션" },
+  { name: "Huxley", style: { letterSpacing: "0.02em" } },
+];
+
 export default async function CareersDetailPage(props: PageProps<"/careers/[id]">) {
   const { id } = await props.params;
-  const [jobs, brands] = await Promise.all([getCareersJobs(), getBrands()]);
+  const jobs = await getCareersJobs();
   const job = jobs.find((j) => j.id === id);
   if (!job) notFound();
+
+  const isIntern = job.tag === "인턴";
+  const values = isIntern ? INTERN_VALUES : DEFAULT_VALUES;
+  const sections = isIntern ? INTERN_SECTIONS : DEFAULT_SECTIONS;
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -101,7 +181,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
           </p>
           <h2 className="mb-5 text-2xl font-extrabold tracking-tight">이런 성장을 약속합니다</h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
-            {VALUES.map((v) => (
+            {values.map((v) => (
               <div key={v.title} className="card-shadow rounded-2xl border border-gray-200 bg-white p-6">
                 <span
                   className="mb-3.5 inline-grid h-11 w-11 place-items-center rounded-xl text-[22px] text-[#b81f6c]"
@@ -116,28 +196,33 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
           </div>
         </section>
 
-        {brands.length > 0 && (
-          <section className="mt-[52px]">
-            <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
-              PARTNERS
+        <section className="mt-[52px]">
+          <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
+            PARTNERS
+          </p>
+          <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
+            이런 브랜드들과 함께 일해요
+          </h2>
+          <div className="card-shadow rounded-[20px] border border-gray-200 bg-white px-6 py-[34px]">
+            <p className="mb-7 text-center text-xs font-bold uppercase tracking-[0.08em] text-gray-400">
+              함께하는 주요 뷰티 브랜드
             </p>
-            <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
-              이런 브랜드들과 함께 일해요
-            </h2>
-            <div className="card-shadow rounded-[20px] border border-gray-200 bg-white px-6 py-[34px]">
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(130px,1fr))] place-items-center gap-x-4 gap-y-[34px]">
-                {brands.map((b) => (
-                  <span key={b.id} className="text-center text-base font-extrabold tracking-tight text-gray-800">
-                    {b.name}
-                  </span>
-                ))}
-              </div>
+            <div className="grid grid-cols-2 place-items-center gap-x-4 gap-y-[28px] sm:grid-cols-4">
+              {PARTNER_BRANDS.map((b) => (
+                <span
+                  key={b.name}
+                  className="text-center text-sm font-extrabold leading-tight tracking-tight text-gray-800"
+                  style={b.style}
+                >
+                  {b.name}
+                </span>
+              ))}
             </div>
-          </section>
-        )}
+          </div>
+        </section>
 
         <section className="mt-[52px] grid gap-5">
-          {SECTIONS.map((sec, i) => (
+          {sections.map((sec, i) => (
             <div
               key={sec.title}
               className="card-shadow rounded-[18px] border border-gray-200 bg-white px-7 py-[26px]"
@@ -150,7 +235,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
               </div>
               <ul className="m-0 grid list-none gap-2.5 p-0">
                 {sec.items.map((item) => (
-                  <li key={item} className="relative pl-6 text-[14.5px] leading-relaxed text-gray-700">
+                  <li key={item} className="relative pl-[22px] text-[14.5px] leading-relaxed text-gray-700">
                     <i
                       className="ph-bold ph-check absolute left-0 top-0.5"
                       style={{ color: "var(--brand-pink)" }}

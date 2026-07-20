@@ -4,10 +4,11 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { ExamAttempt } from "@/lib/types";
 
-interface InternRow {
+// DB 테이블명은 당분간 interns를 그대로 쓴다(마이그레이션 비용 대비 리네이밍 실익이 낮음).
+// 화면 상 명칭만 "매니저"로 바꿈.
+interface ManagerRow {
   id: string;
   name: string;
-  role: string | null;
   start_date: string;
   note: string | null;
 }
@@ -92,11 +93,10 @@ function ExamScores({ name }: { name: string }) {
   );
 }
 
-export default function InternsTab() {
+export default function ManagersTab() {
   const supabase = createClient();
-  const [interns, setInterns] = useState<InternRow[]>([]);
+  const [managers, setManagers] = useState<ManagerRow[]>([]);
   const [name, setName] = useState("");
-  const [role, setRole] = useState("");
   const [startDate, setStartDate] = useState("");
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(true);
@@ -105,9 +105,9 @@ export default function InternsTab() {
   async function reload() {
     const { data } = await supabase
       .from("interns")
-      .select("*")
+      .select("id, name, start_date, note")
       .order("start_date", { ascending: false });
-    setInterns((data as InternRow[]) ?? []);
+    setManagers((data as ManagerRow[]) ?? []);
     setLoading(false);
   }
 
@@ -117,19 +117,17 @@ export default function InternsTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function addIntern() {
+  async function addManager() {
     if (!name.trim() || !startDate) {
       alert("이름과 입사일은 필수예요. 이름은 exam 응시자명과 동일하게 입력해야 점수가 매칭돼요.");
       return;
     }
     await supabase.from("interns").insert({
       name: name.trim(),
-      role: role.trim() || null,
       start_date: startDate,
       note: note.trim() || null,
     });
     setName("");
-    setRole("");
     setStartDate("");
     setNote("");
     reload();
@@ -144,24 +142,18 @@ export default function InternsTab() {
 
   return (
     <div>
-      <h1 className="mb-1.5 text-[22px] font-extrabold tracking-tight">인턴 관리</h1>
+      <h1 className="mb-1.5 text-[22px] font-extrabold tracking-tight">매니저 관리</h1>
       <p className="mb-5 text-[13px] text-gray-400">
-        입사일을 등록하면 6개월·1년 시점을 자동으로 알려주고, GlovvRecruit/exam 시험 점수를
-        이름으로 매칭해 함께 보여줘요.
+        입사일을 등록하면 6개월·1년 시점을 자동으로 알려주고, exam 시험 점수를 이름으로 매칭해
+        함께 보여줘요.
       </p>
 
       <div className="mb-6 grid gap-2.5 rounded-2xl border border-gray-200 bg-white p-[18px]">
-        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="이름 (exam 응시자명과 동일하게)"
-            className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
-          />
-          <input
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            placeholder="직무 (선택)"
             className="rounded-lg border border-gray-200 px-3 py-2 text-sm"
           />
           <input
@@ -179,33 +171,28 @@ export default function InternsTab() {
         />
         <button
           type="button"
-          onClick={addIntern}
+          onClick={addManager}
           className="rounded-lg py-2.5 text-sm font-extrabold text-white"
           style={{ background: "var(--brand-gradient)" }}
         >
-          인턴 등록
+          매니저 등록
         </button>
       </div>
 
       <div className="grid gap-3">
-        {interns.map((intern) => {
-          const sixMonth = addMonths(intern.start_date, 6);
-          const oneYear = addMonths(intern.start_date, 12);
+        {managers.map((manager) => {
+          const sixMonth = addMonths(manager.start_date, 6);
+          const oneYear = addMonths(manager.start_date, 12);
           return (
-            <div key={intern.id} className="rounded-2xl border border-gray-200 bg-white p-[18px]">
+            <div key={manager.id} className="rounded-2xl border border-gray-200 bg-white p-[18px]">
               <div className="mb-3 flex flex-wrap items-center gap-2.5">
-                <span className="text-[15px] font-extrabold">{intern.name}</span>
-                {intern.role && (
-                  <span className="rounded-lg bg-gray-100 px-2 py-0.5 text-xs font-bold text-gray-600">
-                    {intern.role}
-                  </span>
-                )}
+                <span className="text-[15px] font-extrabold">{manager.name}</span>
                 <span className="text-xs text-gray-400">
-                  입사일 {new Date(intern.start_date + "T00:00:00").toLocaleDateString("ko-KR")}
+                  입사일 {new Date(manager.start_date + "T00:00:00").toLocaleDateString("ko-KR")}
                 </span>
                 <button
                   type="button"
-                  onClick={() => remove(intern.id)}
+                  onClick={() => remove(manager.id)}
                   className="ml-auto flex-none rounded-lg border border-gray-200 px-2.5 py-1 text-xs font-bold text-gray-500"
                 >
                   삭제
@@ -217,11 +204,11 @@ export default function InternsTab() {
                 <Milestone label="1년" date={oneYear} today={today} />
               </div>
 
-              {intern.note && <p className="mb-3 text-xs text-gray-500">{intern.note}</p>}
+              {manager.note && <p className="mb-3 text-xs text-gray-500">{manager.note}</p>}
 
               <div className="border-t border-gray-100 pt-3">
                 <div className="mb-1.5 text-[11px] font-bold text-gray-400">exam 응시 점수</div>
-                <ExamScores name={intern.name} />
+                <ExamScores name={manager.name} />
               </div>
             </div>
           );

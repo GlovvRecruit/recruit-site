@@ -26,7 +26,7 @@ export default function SiteNav() {
             }}
           />
           <span className="text-[17px] font-extrabold tracking-tight">
-            <span className="brand-gradient-text">Glovv</span> 채용
+            <span className="brand-gradient-text">앤마들린</span> 채용
           </span>
         </Link>
 

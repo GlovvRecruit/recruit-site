@@ -32,7 +32,7 @@ export default function AdminLogin() {
             style={{ background: "var(--brand-gradient)" }}
           />
           <span className="text-[15px] font-extrabold">
-            <span className="brand-gradient-text">Glovv</span>{" "}
+            <span className="brand-gradient-text">앤마들린</span>{" "}
             <span className="text-gray-400">채용 관리자</span>
           </span>
         </div>

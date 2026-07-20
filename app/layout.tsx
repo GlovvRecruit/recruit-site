@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Glovv 채용 | 뷰티 브랜드 채용 공고를 카톡으로",
+  title: "앤마들린 채용 | 뷰티 브랜드 채용 공고를 카톡으로",
   description:
     "관심 뷰티 브랜드·직무의 신규 채용 공고만 골라 카카오톡으로 받아보는 Glovv의 뷰티 채용 큐레이션 서비스.",
 };

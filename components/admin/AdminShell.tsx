@@ -5,13 +5,13 @@ import { createClient } from "@/lib/supabase/client";
 import DashboardTab from "@/components/admin/DashboardTab";
 import JobsTab from "@/components/admin/JobsTab";
 import MediaTab from "@/components/admin/MediaTab";
-import InternsTab from "@/components/admin/InternsTab";
+import ManagersTab from "@/components/admin/ManagersTab";
 
 const TABS = [
   { key: "dashboard", label: "대시보드" },
   { key: "jobs", label: "채용 공고" },
   { key: "media", label: "MEDIA" },
-  { key: "interns", label: "인턴" },
+  { key: "managers", label: "매니저" },
 ] as const;
 
 type TabKey = (typeof TABS)[number]["key"];
@@ -32,15 +32,23 @@ export default function AdminShell({ email }: { email: string }) {
           style={{ background: "var(--brand-gradient)" }}
         />
         <span className="text-[15px] font-extrabold">
-          <span className="brand-gradient-text">Glovv</span>{" "}
+          <span className="brand-gradient-text">앤마들린</span>{" "}
           <span className="text-sm font-bold text-gray-400">채용 관리자</span>
         </span>
 
         <a
-          href="https://brand-helper.vercel.app/"
+          href="https://tally.so/forms/RGzKbK/submissions"
           target="_blank"
           rel="noopener noreferrer"
           className="ml-auto inline-flex items-center gap-1.5 text-[13px] font-bold text-gray-400 no-underline"
+        >
+          <i className="ph ph-arrow-square-out" /> Tally 원본 응답
+        </a>
+        <a
+          href="https://brand-helper.vercel.app/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1.5 text-[13px] font-bold text-gray-400 no-underline"
         >
           <i className="ph ph-arrow-square-out" /> brand-helper (인턴 Q&A)
         </a>
@@ -83,7 +91,7 @@ export default function AdminShell({ email }: { email: string }) {
         {tab === "dashboard" && <DashboardTab />}
         {tab === "jobs" && <JobsTab />}
         {tab === "media" && <MediaTab />}
-        {tab === "interns" && <InternsTab />}
+        {tab === "managers" && <ManagersTab />}
       </div>
     </div>
   );

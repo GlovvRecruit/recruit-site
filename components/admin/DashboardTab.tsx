@@ -41,10 +41,10 @@ export default function DashboardTab() {
   }, []);
 
   const kpis = [
-    { label: "등록 브랜드", value: counts?.brands },
-    { label: "열린 공고", value: counts?.openJobs },
+    { label: "등록 브랜드 (크롤링 예정)", value: counts?.brands },
+    { label: "열린 브랜드 공고 (크롤링 예정)", value: counts?.openJobs },
     { label: "알림 구독 리드", value: counts?.leads },
-    { label: "자사 채용 지원", value: counts?.applications },
+    { label: "자사 채용 지원 (Tally 포함)", value: counts?.applications },
     { label: "MEDIA 링크", value: counts?.mediaLinks },
   ];
 
@@ -66,9 +66,21 @@ export default function DashboardTab() {
         ))}
       </div>
 
-      <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-5 text-[13px] leading-relaxed text-gray-500">
-        연령대·구직 상태 등 방문자 인구통계는 별도 분석 도구를 연결하기 전까지는 수집하지
-        않아요. 필요하면 Vercel Analytics나 GA4 연동을 다음 단계로 추가할 수 있어요.
+      <div className="grid gap-3 rounded-2xl border border-dashed border-gray-300 bg-white p-5 text-[13px] leading-relaxed text-gray-500">
+        <p className="m-0">
+          <b className="font-bold text-gray-700">브랜드/공고</b>는 아직 admin에서 직접 입력하지
+          않아요 — 각 브랜드의 자사 채용 페이지를 크롤링하는 파이프라인이 채울 예정이에요(구축 전).
+        </p>
+        <p className="m-0">
+          <b className="font-bold text-gray-700">자사 채용 지원</b>은 실제 지원자가 Tally 폼으로
+          제출하면 웹훅(<code className="rounded bg-gray-100 px-1 py-0.5">/api/tally-webhook</code>)이
+          자동으로 여기 반영해요. Tally 원본 응답은 상단 &quot;Tally 원본 응답&quot; 링크에서도
+          확인할 수 있어요.
+        </p>
+        <p className="m-0">
+          연령대·구직 상태 등 방문자 인구통계는 별도 분석 도구를 연결하기 전까지는 수집하지
+          않아요.
+        </p>
       </div>
     </div>
   );

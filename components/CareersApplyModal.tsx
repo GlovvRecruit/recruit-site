@@ -9,7 +9,7 @@ export default function CareersApplyModal({
 }) {
   function shareKakao() {
     if (navigator.share) {
-      navigator.share({ title: `Glovv 채용 · ${jobTitle}`, url: location.href }).catch(() => {});
+      navigator.share({ title: `앤마들린 채용 · ${jobTitle}`, url: location.href }).catch(() => {});
     } else {
       navigator.clipboard
         .writeText(location.href)

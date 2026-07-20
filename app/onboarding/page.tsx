@@ -218,7 +218,7 @@ export default function OnboardingPage() {
               <i className="ph-fill ph-chat-circle text-[26px] text-[color:var(--kakao-brown)]" />
               <div>
                 <div className="text-sm font-extrabold text-[color:var(--kakao-brown)]">
-                  Glovv 채용 카카오 채널 추가
+                  앤마들린 채용 카카오 채널 추가
                 </div>
                 <div className="text-xs" style={{ color: "#5c5300" }}>
                   신규 공고가 뜨면 채널로 알려드려요

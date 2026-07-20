@@ -16,9 +16,9 @@
 | `job-detail.dc.html` | `/jobs/[id]` | 브랜드 프로필 섹션 포함(별도 페이지로 분리하지 않음) |
 | `onboarding.dc.html` | `/onboarding` | 카카오 로그인 없음 — 3단계 마지막에 **휴대폰 번호 입력** 추가 |
 | `careers.dc.html` | `/careers` | |
-| `careers-detail.dc.html` | `/careers/[id]` | Tally 폼 ID는 placeholder |
+| `careers-detail.dc.html` | `/careers/[id]` | Tally 폼 실연결(`RGzKbK`) |
 | `media.dc.html` | `/media` | |
-| `admin.dc.html` | `/admin` | 탭 구성 다름: 대시보드/채용공고/MEDIA/**인턴**(신규) |
+| `admin.dc.html` | `/admin` | 탭 구성 다름: 대시보드/채용공고(자사만)/MEDIA/**매니저**(신규) |
 
 ## 2. 톤 & 토큰
 
@@ -45,8 +45,13 @@
   수/MEDIA 링크 수)로 대체하고, 인구통계는 "수집하지 않는다"고 명시.
 - **온보딩 3단계**: 원본은 카카오 채널 추가 + 동의 토글만 있고 식별자가 없는데, 리드를 나중에
   찾을 방법(해지 등)이 필요해 **휴대폰 번호 입력 필드를 추가**함.
-- **Admin 인턴 탭**: 원본 `admin.dc.html`에는 없는 화면. 사용자 요청으로 신규 추가 — 입사일 기반
-  6개월/1년 마일스톤 + GlovvRecruit/exam 프로젝트 점수 실시간 조회.
+- **Admin 매니저 탭**: 원본 `admin.dc.html`에는 없는 화면. 사용자 요청으로 신규 추가 — 입사일 기반
+  6개월/1년 마일스톤 + GlovvRecruit/exam 프로젝트 점수 실시간 조회. 초기에는 "인턴 탭"으로 만들었으나
+  exam이 "Manager 시험"으로 부르는 것과 맞춰 "매니저"로 개명, 직무(role) 필드는 제거함.
+- **Admin 채용 공고 탭 범위 축소**: 처음엔 브랜드+공고(brands/jobs)까지 admin에서 관리하게 만들었으나,
+  타 브랜드 공고는 크롤링으로 채울 계획이라 **자사(`careers_jobs`) 공고만** 관리하도록 축소함.
+- **Tally 웹훅**: 지원 폼(Tally)은 그 자체로는 우리 DB에 안 남는 문제가 있어, 웹훅으로
+  `career_applications`에 자동 적재하도록 추가 구현함(원본 디자인에는 없던 백엔드 로직).
 
 ## 4. 데이터와 맞아야 하는 필드
 

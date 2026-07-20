@@ -5,12 +5,13 @@ import type { CareersJob, MediaLink } from "@/lib/types";
 export const sampleCareersJobs: CareersJob[] = [
   {
     id: "c1",
-    title: "Glovv 뷰티 인턴",
+    title: "글로브 뷰티 인턴",
     tag: "인턴",
-    summary: "뷰티 브랜드·인플루언서 협업 실무를 경험하는 인턴 포지션",
+    summary:
+      "대부분의 올리브영 입점 브랜드(2,000개+) 마케팅을 직접 경험하는 곳. 이력서 없이도 30초 만에 지원 가능.",
     bodyHtml: "",
-    employment: "인턴 (정규직 전환 가능)",
-    location: "서울 · 하이브리드 근무",
+    employment: "인턴 (1년 후 정규직 전환 검토)",
+    location: "서울 용산구 이태원 · 사무실 출근",
     status: "open",
   },
   {
