@@ -52,7 +52,7 @@ export interface Intern {
   note?: string | null;
 }
 
-/** GlovvRecruit/exam 프로젝트의 exam_attempts 테이블 (읽기 전용, 별도 Supabase 프로젝트). */
+/** GlovvRecruit/exam이 쓰는 exam_attempts 테이블. 이 사이트와 같은 Supabase 프로젝트를 공유한다. */
 export interface ExamAttempt {
   id: string;
   name: string;

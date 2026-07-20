@@ -28,7 +28,7 @@
 | `careers_jobs` | 자사 채용 공고 |
 | `career_applications` | 자사 채용/인재풀 지원서 |
 | `media_links` | 보도자료·행사 링크 |
-| `interns` | 인턴 관리(admin 전용). `start_date` 기준 6개월/1년 마일스톤 계산, exam 점수는 `name`으로 매칭해 별도 Supabase 프로젝트에서 실시간 조회 |
+| `interns` | 인턴 관리(admin 전용). `start_date` 기준 6개월/1년 마일스톤 계산, exam 점수는 `name`으로 매칭해 조회(exam과 Supabase 프로젝트를 공유하므로 같은 클라이언트로 `exam_attempts` 조회) |
 
 RLS는 CLAUDE.md §6 참조 (exam 프로젝트와 동일한 "anon 제한 + authenticated 전권" 모델).
 
@@ -63,9 +63,10 @@ RLS는 CLAUDE.md §6 참조 (exam 프로젝트와 동일한 "anon 제한 + authe
 
 ### 2.6 인턴 마일스톤 + exam 연동 (신규 요구사항)
 - admin에서 인턴 이름 + 입사일 입력 → 6개월 시점/1년 시점 날짜와 D-day를 자동 계산해 표시.
-- 같은 화면에서 GlovvRecruit/exam 프로젝트의 `exam_attempts`를 인턴 이름으로 조회해 응시 시험별
-  최종 점수(`total_score`)를 함께 보여준다. **이름이 정확히 일치해야 매칭됨** — 오탈자 주의.
-- 완료 기준: exam Supabase env가 없으면 "연동 미설정" 안내만 표시(크래시 없음).
+- 같은 화면에서 (exam과 공유하는) Supabase 프로젝트의 `exam_attempts`를 인턴 이름으로 조회해 응시
+  시험별 최종 점수(`total_score`)를 함께 보여준다. **이름이 정확히 일치해야 매칭됨** — 오탈자 주의.
+- 완료 기준: Supabase env가 없으면 "연동 미설정" 안내만 표시(크래시 없음). env가 있으면 이 사이트의
+  자체 데이터와 exam 점수가 같은 클라이언트로 함께 조회된다(별도 설정 불필요).
 
 ---
 

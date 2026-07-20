@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { createExamClient } from "@/lib/supabase/exam-client";
 import type { ExamAttempt } from "@/lib/types";
 
 interface InternRow {
@@ -58,13 +57,12 @@ const EXAM_TYPE_LABEL: Record<string, string> = {
 };
 
 function ExamScores({ name }: { name: string }) {
-  const [examClient] = useState(() => createExamClient());
   const [attempts, setAttempts] = useState<ExamAttempt[] | null>(null);
 
   useEffect(() => {
-    if (!examClient) return;
+    const supabase = createClient();
     let cancelled = false;
-    examClient
+    supabase
       .from("exam_attempts")
       .select("id, name, exam_type, exam_date, submitted_at, total_score")
       .eq("name", name)
@@ -75,15 +73,8 @@ function ExamScores({ name }: { name: string }) {
     return () => {
       cancelled = true;
     };
-  }, [examClient, name]);
+  }, [name]);
 
-  if (!examClient) {
-    return (
-      <p className="text-xs text-gray-400">
-        exam Supabase 연동 미설정 (.env의 NEXT_PUBLIC_EXAM_SUPABASE_URL/ANON_KEY 필요)
-      </p>
-    );
-  }
   if (attempts === null) return <p className="text-xs text-gray-400">시험 점수 조회 중...</p>;
   if (attempts.length === 0) return <p className="text-xs text-gray-400">응시 기록이 없어요.</p>;
 
