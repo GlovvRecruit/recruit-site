@@ -45,9 +45,8 @@ export default function CareersApplyModal({
             <i className="ph-fill ph-chat-circle" /> 공유
           </button>
         </div>
-        {/* TODO: 실제 Tally 폼 ID로 교체 필요 (현재 placeholder) */}
         <iframe
-          src="https://tally.so/embed/wMExdA?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+          src="https://tally.so/embed/RGzKbK?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
           className="w-full flex-1 border-0"
           title="지원 폼"
           loading="lazy"
