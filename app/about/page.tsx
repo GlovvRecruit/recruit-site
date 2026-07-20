@@ -24,13 +24,13 @@ const FLIXX_POINTS = [
 ];
 
 const TALENT_PROFILE = [
-  { title: "Passion Person", description: "높은 목표를 세우고 열정적으로 도전하는 사람" },
+  { title: "Passion Person", description: ["높은 목표를 세우고", "열정적으로 도전하는 사람"] },
   {
     title: "Problem Solver",
-    description: "직무의 경계를 넘어 본질적인 문제를 정확하게 파악하고 해결하는 사람",
+    description: ["직무의 경계를 넘어 본질적인 문제를", "정확히 파악하고 해결하는 사람"],
   },
-  { title: "Honest Person", description: "신뢰할 수 있는 정직한 사람" },
-  { title: "Co-worker", description: "회사의 성장을 위해 팀원들과 잘 협동하는 사람" },
+  { title: "Honest Person", description: ["신뢰할 수 있는 정직한 사람"] },
+  { title: "Co-worker", description: ["회사의 성장을 위해", "팀원들과 잘 협동하는 사람"] },
 ];
 
 export default function AboutPage() {
@@ -199,7 +199,9 @@ export default function AboutPage() {
               <div key={t.title}>
                 <h3 className="text-lg font-extrabold tracking-tight">{t.title}</h3>
                 <p className="mx-auto mt-2.5 max-w-[220px] text-sm leading-relaxed text-gray-500">
-                  {t.description}
+                  {t.description.flatMap((line, i, arr) =>
+                    i < arr.length - 1 ? [line, <br key={i} />] : [line]
+                  )}
                 </p>
               </div>
             ))}
