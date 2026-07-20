@@ -1,0 +1,38 @@
+import SiteNav from "@/components/SiteNav";
+import AlertCta from "@/components/AlertCta";
+import BrandJobsBrowser from "@/components/BrandJobsBrowser";
+import { getBrands, getJobs } from "@/lib/data";
+
+export default async function BrandJobsPage() {
+  const [brands, jobs] = await Promise.all([getBrands(), getJobs()]);
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <SiteNav />
+
+      <main className="mx-auto max-w-[1120px] px-5 pb-[90px] pt-8">
+        <p className="m-0 text-xs font-extrabold tracking-[0.18em] text-[color:var(--brand-pink)]">
+          BEAUTY BRANDS
+        </p>
+        <h1 className="mb-3 mt-2.5 max-w-[660px] text-[38px] font-extrabold leading-[1.22] tracking-tight">
+          이제 관심 기업의 신규 채용 공고를{" "}
+          <span className="brand-gradient-text">카톡으로</span> 받아보세요
+        </h1>
+        <p className="mb-7 max-w-[560px] text-[15px] text-gray-500">
+          주요 뷰티 기업 채용 공고 — 관심 기업·직무만 골라두면 신규 공고를 카톡으로
+          알려드리고, 지금 열린 공고는 언제든 아래에서 바로 확인할 수 있어요.
+        </p>
+
+        <AlertCta />
+
+        <BrandJobsBrowser brands={brands} jobs={jobs} />
+
+        <p className="mt-[34px] border-t border-dashed border-gray-200 pt-4 text-[12.5px] leading-relaxed text-gray-400">
+          대부분이 재리뷰율 상위 뷰티 브랜드가 이용하는 <b className="text-gray-600">Glovv</b>에서,
+          뷰티 (예비) 실무자들과 뷰티 브랜드의 성장을 위해 제공합니다. 지원은 각 브랜드의 원문 공고에서
+          진행됩니다.
+        </p>
+      </main>
+    </div>
+  );
+}

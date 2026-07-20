@@ -1,26 +1,85 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.css");
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f9fafb;
+  --foreground: #101828;
+
+  /* Glovv 디자인 시스템 토큰 (design/ 레퍼런스 *.dc.html 기준) */
+  --brand-orange: #fa7035;
+  --brand-pink: #ff0099;
+  --brand-pink-tag: #b81f6c;
+  --brand-gradient: linear-gradient(120deg, var(--brand-orange), var(--brand-pink));
+
+  --kakao-yellow: #fee500;
+  --kakao-brown: #191600;
+
+  --success: #12a150;
+  --info: #2b7fff;
+
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #101828;
+
+  --surface: #ffffff;
+
+  /* 데스크톱 우선 마케팅 사이트: 본문 최대폭 */
+  --content-max: 1120px;
+  --content-max-narrow: 860px;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-pink: var(--brand-pink);
+  --color-kakao-yellow: var(--kakao-yellow);
+  --color-kakao-brown: var(--kakao-brown);
+  --color-success: var(--success);
+  --color-info: var(--info);
+  --color-surface: var(--surface);
+  --color-gray-50: var(--gray-50);
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-700: var(--gray-700);
+  --color-gray-800: var(--gray-800);
+  --color-gray-900: var(--gray-900);
+  --font-sans: "Pretendard Variable", var(--font-geist-sans), -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+}
+
+.brand-gradient-text {
+  background: var(--brand-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.brand-gradient-bg {
+  background: var(--brand-gradient);
+}
+
+.card-shadow {
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.05);
+}
+
+.card-shadow-hover:hover {
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.1);
 }
