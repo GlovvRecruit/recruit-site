@@ -6,7 +6,11 @@ import { usePathname } from "next/navigation";
 const ITEMS = [
   { href: "/about", label: "ABOUT", match: "/about" },
   { href: "/careers", label: "자사 채용", match: "/careers" },
-  { href: "/brand-jobs", label: "브랜드 공고", match: ["/brand-jobs", "/jobs", "/onboarding"] },
+  {
+    href: "/brand-jobs",
+    label: "메이저 뷰티 브랜드 공고",
+    match: ["/brand-jobs", "/jobs", "/onboarding"],
+  },
   { href: "/media", label: "MEDIA", match: "/media" },
 ];
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 
 const METRICS = [
-  { value: "2,000+", label: "협업 뷰티 브랜드 (자사 인력 상시 40%↑)" },
+  { value: "2,000+", label: "협업 뷰티 브랜드" },
   { value: "4,000+", label: "협업 인플루언서" },
   { value: "30억", label: "'25 시리즈A 투자 유치" },
   { value: "3만+", label: "생성된 릴스 콘텐츠" },
@@ -12,14 +12,14 @@ const GLOVV_POINTS = [
   "대부분의 올리브영 입점 브랜드(2,000개+)가 이용하는 뷰티 릴스 플랫폼",
   "4,000명+ 국내 인플루언서, 1,300명+ 일본 인플루언서가 매일 접속",
   "출시 3개월 만에 BEP 달성, '25년 시리즈A 30억원 투자유치",
-  "일본 엔화·미국 달러 매출 발생 중, '26년 북미 진출 확대",
+  "1년만에 국내 매출 100억원 달성, 일본 엔화 매출 발생 중",
 ];
 
 const FLIXX_POINTS = [
-  "클릭 3번으로 만드는 AI 뷰티 애니메이션",
-  "제품 URL 입력 → 시구절·컨셉 도출부터 영상 생성까지 자동",
-  "완벽한 한국어 반영과 영·일·중 지원, 이미지 1클릭 생성",
-  "4만원 — 3D 실사 스튜디오의 1/100 수준 비용",
+  "기획부터 영상 제작 완료까지 클릭 3번 만에 완성",
+  "영상 제작 6시간 → 5분",
+  "쉬운 사용법으로 AI 초보자도 편하게 이용 가능",
+  "일상생활형 영상, 판타지 영상, 브랜딩 영상 등 제작",
 ];
 
 export default function AboutPage() {
@@ -41,9 +41,12 @@ export default function AboutPage() {
             <br />
             <span className="brand-gradient-text">함께 성장할 사람</span>을 찾습니다
           </h1>
-          <p className="mb-7 max-w-[560px] text-base leading-relaxed text-gray-500">
-            글로브의 트렌드를 만드는 앤마들린, 그리고 대부분이 재리뷰율 상위 뷰티 브랜드의
-            채용 소식을 한곳에서 만나보세요.
+          <p className="mb-7 max-w-[620px] text-base leading-relaxed text-gray-500">
+            대부분의 올리브영 입점 브랜드가 사용하는 1등 뷰티 릴스 제작 플랫폼 글로브,
+            <br />
+            5분만에 AI 뷰티 애니메이션을 만들 수 있는 플릭스를 운영하는 앤마들린 주식회사입니다.
+            <br />
+            자사 채용 공고 뿐만 아니라 주요 뷰티 브랜드 채용공고도 전달드릴게요.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
@@ -90,7 +93,7 @@ export default function AboutPage() {
             />
             <div className="relative">
               <div className="text-[11px] font-extrabold tracking-[0.1em] text-gray-400">
-                BEAUTY REELS · AI
+                BEAUTY REELS
               </div>
               <h3 className="brand-gradient-text mb-1 mt-1.5 inline-block text-2xl font-extrabold">
                 글로브 (Glovv)
@@ -112,6 +115,24 @@ export default function AboutPage() {
                   </li>
                 ))}
               </ul>
+              <div className="mt-5 flex flex-wrap gap-2">
+                <a
+                  href="https://glovv.co.kr/intro"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-bold text-gray-700 no-underline"
+                >
+                  글로브 소개서 <i className="ph-bold ph-arrow-up-right" />
+                </a>
+                <a
+                  href="https://glovv.co.kr/reference"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-bold text-gray-700 no-underline"
+                >
+                  글로브 레퍼런스 <i className="ph-bold ph-arrow-up-right" />
+                </a>
+              </div>
             </div>
           </div>
 
@@ -123,7 +144,7 @@ export default function AboutPage() {
               플릭스 (FLIXX)
             </h3>
             <p className="mb-4 text-sm text-gray-500">
-              클릭 3번 만에 AI 애니메이션을 생성하는 서비스
+              클릭 3번으로 만드는 AI 뷰티 애니메이션
             </p>
             <ul className="m-0 grid list-none gap-2.5 p-0">
               {FLIXX_POINTS.map((p) => (
@@ -136,6 +157,16 @@ export default function AboutPage() {
                 </li>
               ))}
             </ul>
+            <div className="mt-5">
+              <a
+                href="https://slashpage.com/nmodelin/flixx_intro"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-bold text-gray-700 no-underline"
+              >
+                플릭스 소개서&레퍼런스 <i className="ph-bold ph-arrow-up-right" />
+              </a>
+            </div>
           </div>
         </div>
 
