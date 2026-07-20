@@ -157,14 +157,22 @@ export default function AboutPage() {
                 </li>
               ))}
             </ul>
-            <div className="mt-5">
+            <div className="mt-5 flex flex-wrap gap-2">
               <a
                 href="https://slashpage.com/nmodelin/flixx_intro"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-bold text-gray-700 no-underline"
               >
-                플릭스 소개서&레퍼런스 <i className="ph-bold ph-arrow-up-right" />
+                플릭스 소개서 <i className="ph-bold ph-arrow-up-right" />
+              </a>
+              <a
+                href="https://instagram.com/flixx.official"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-bold text-gray-700 no-underline"
+              >
+                플릭스 레퍼런스 <i className="ph-bold ph-arrow-up-right" />
               </a>
             </div>
           </div>

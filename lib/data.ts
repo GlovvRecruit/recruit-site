@@ -75,11 +75,20 @@ export async function getCareersJobs(): Promise<CareersJob[]> {
       id: c.id,
       title: c.title,
       tag: c.tag,
+      employmentType: c.employment_type ?? "fulltime",
       summary: c.summary,
       bodyHtml: c.body_html,
       employment: c.employment,
       location: c.location,
       status: c.status,
+      hashtags: c.hashtags,
+      benefitTitle: c.benefit_title,
+      benefitItems: c.benefit_items,
+      responsibilities: c.responsibilities,
+      requirements: c.requirements,
+      niceToHaves: c.nice_to_haves,
+      benefits: c.benefits,
+      showRelated: c.show_related ?? true,
     }));
   } catch {
     return sampleCareersJobs;

@@ -25,15 +25,34 @@ export interface Job {
   status: "open" | "closed";
 }
 
+export type EmploymentType = "intern" | "fulltime";
+
 export interface CareersJob {
   id: string;
   title: string;
   tag: string;
+  employmentType: EmploymentType;
   summary: string;
   bodyHtml: string;
   employment?: string | null;
   location?: string | null;
   status: "open" | "closed";
+  /** "#태그1 #태그2 #태그3" 원문. '#' 기준으로 분리해 렌더링 */
+  hashtags?: string | null;
+  /** "이런 성장을 약속합니다" 섹션 제목. 비어있으면 기본값 사용 */
+  benefitTitle?: string | null;
+  /** 한 줄에 "제목 - 설명" 형식으로 최대 3개 — 혜택 카드 3종 */
+  benefitItems?: string | null;
+  /** 한 줄에 하나씩(줄바꿈 구분) — "이런 일을 해요" 체크리스트 */
+  responsibilities?: string | null;
+  /** 한 줄에 하나씩(줄바꿈 구분) — "이런 분을 찾아요" 체크리스트 */
+  requirements?: string | null;
+  /** 한 줄에 하나씩(줄바꿈 구분) — "이런 분이면 더 좋아요" 체크리스트 */
+  niceToHaves?: string | null;
+  /** 한 줄에 하나씩(줄바꿈 구분) — "근무 조건·혜택" 체크리스트 */
+  benefits?: string | null;
+  /** 다른 자사 공고 목록을 상세 페이지 하단에 보여줄지 여부 */
+  showRelated: boolean;
 }
 
 export interface MediaLink {
