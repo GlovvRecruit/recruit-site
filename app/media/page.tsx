@@ -27,7 +27,7 @@ export default async function MediaPage() {
           MEDIA
         </p>
         <h1 className="mb-2 mt-2.5 text-[32px] font-extrabold tracking-tight">
-          Glovv, 이렇게 성장하고 있어요
+          앤마들린, 이렇게 성장하고 있어요
         </h1>
         <p className="mb-8 text-[15px] text-gray-500">언론 보도와 오프라인 행사 소식을 모았습니다.</p>
 

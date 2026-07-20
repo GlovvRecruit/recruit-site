@@ -27,8 +27,8 @@
 | `brands` | 브랜드(법인). `profile_ai`(AI 매력도)는 `profile_reviewed=true` 전까지 비공개. **admin에서 수동 생성하지 않음** — 크롤링 파이프라인 구축 전까지는 비어 있거나 샘플 폴백으로 표시됨 |
 | `jobs` | 브랜드 채용 공고. `status`(open/closed)만 있고 "신규 감지" 개념은 없음(이번 스코프 밖). `brands`와 마찬가지로 admin 수동 입력 대상 아님 |
 | `leads` | 알림 신청자. `phone`으로 식별, 로그인 없음. `unsubscribed`로 해지 표시 |
-| `careers_jobs` | 자사(글로브/플릭스) 채용 공고. **admin "채용 공고" 탭이 관리하는 유일한 공고 테이블**. `employment_type`('intern'\|'fulltime')이 AFTER-1-YEAR 직무 적합도 섹션 노출 여부를 결정. `hashtags`는 "#태그1 #태그2" 원문(상세 히어로의 특징 태그). `benefit_title`/`benefit_items`("제목 - 설명" 줄바꿈 구분, 최대 3개)가 "이런 성장을 약속합니다" 섹션. `responsibilities`/`requirements`/`nice_to_haves`/`benefits`(줄바꿈 구분)가 "이런 일을 해요/이런 분을 찾아요/이런 분이면 더 좋아요/근무 조건·혜택" 4개 체크리스트. `show_related`가 하단 "다른 자사 공고" 노출 여부 |
-| `career_applications` | 자사 채용 지원(Tally 웹훅으로 자동 적재, `raw_payload`/`tally_submission_id` 컬럼) + 인재풀 등록(`CareersApplyForm`에서 직접 insert) |
+| `careers_jobs` | 자사(글로브/플릭스) 채용 공고. **admin "채용 공고" 탭이 관리하는 유일한 공고 테이블**. `employment_type`('intern'\|'fulltime')이 AFTER-1-YEAR 직무 적합도 섹션 노출 여부를 결정. `hashtags`는 "#태그1 #태그2" 원문(상세 히어로의 특징 태그). `benefit_title`/`benefit_items`("제목 - 설명" 줄바꿈 구분, 최대 3개)가 "이런 성장을 약속합니다" 섹션. `responsibilities`/`requirements`/`nice_to_haves`/`benefits`(줄바꿈 구분)가 "이런 일을 해요/이런 분을 찾아요/이런 분이면 더 좋아요/근무 조건·혜택" 4개 체크리스트. `show_related`가 하단 **다른 브랜드 공고**(`jobs` 테이블, `/jobs/[id]`로 링크) 노출 여부 — 자사 공고끼리의 상호 추천이 아님 |
+| `career_applications` | 자사 채용 지원(Tally 웹훅으로 자동 적재, `raw_payload`/`tally_submission_id` 컬럼) + 인재풀 등록(`CareersApplyForm`에서 직접 insert, **이력서 파일 첨부 필수** → Storage `resumes` 버킷에 업로드 후 `resume_path`에 저장) |
 | `media_links` | 보도자료·행사 링크 |
 | `interns` | 화면상 "매니저" 관리(admin 전용). `start_date` 기준 6개월/1년 마일스톤 계산, exam 점수는 `name`으로 매칭해 조회(exam과 Supabase 프로젝트를 공유하므로 같은 클라이언트로 `exam_attempts` 조회). 직무(role) 필드는 UI에서 더 이상 쓰지 않음 |
 

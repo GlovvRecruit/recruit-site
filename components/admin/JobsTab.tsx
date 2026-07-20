@@ -292,7 +292,7 @@ export default function JobsTab() {
             className="accent-[color:var(--brand-pink)]"
           />
           <span className="text-xs font-bold text-gray-600">
-            9. 연관 채용공고 보여주기 (상세 페이지 하단에 다른 자사 공고 노출)
+            9. 연관 채용공고 보여주기 (상세 페이지 하단에 다른 브랜드 공고 노출)
           </span>
         </label>
 

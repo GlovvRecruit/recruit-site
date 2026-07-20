@@ -54,12 +54,17 @@
 - Supabase: exam과 공유하는 프로젝트 하나. 이 사이트 전용 테이블은 `brands`/`jobs`/`leads`/
   `careers_jobs`/`career_applications`/`media_links`/`interns`(화면상 "매니저")
   (`supabase/migrations/0001_init.sql` + `0002_tally_webhook.sql` + `0003_careers_job_sections.sql` +
-  `0004_careers_job_full_content.sql`, `exam_attempts`는 건드리지 않음). `careers_jobs`의 세부
-  필드는 `PROJECT_SPEC.md` §1 표 참고 — admin "채용 공고" 탭(`JobsTab.tsx`)에서 등록/수정 모두 가능.
-  단, `app/careers/[id]/page.tsx`의 **AFTER 1 YEAR 직무 적합도 카드**(마케팅/운영/세일즈/BD·PM/MD,
-  `ROLE_FIT` 상수)는 아직 하드코딩된 마케팅 카피이고 admin에서 편집 불가 — `employment_type==='intern'`
-  인 공고에만 노출됨.
+  `0004_careers_job_full_content.sql` + `0005_resume_storage.sql`, `exam_attempts`는 건드리지 않음).
+  `careers_jobs`의 세부 필드는 `PROJECT_SPEC.md` §1 표 참고 — admin "채용 공고" 탭(`JobsTab.tsx`)에서
+  등록/수정 모두 가능. 단, `app/careers/[id]/page.tsx`의 **AFTER 1 YEAR 직무 적합도 카드**(마케팅
+  100%/운영 80%/세일즈 80%/BD·PM 60%/MD 60%, `ROLE_FIT` 상수, 이 순서로 고정 노출)는 아직 하드코딩된
+  마케팅 카피이고 admin에서 편집 불가 — `employment_type==='intern'`인 공고에만 노출됨.
   `career_applications`에는 Tally 웹훅용 `raw_payload`/`tally_submission_id` 컬럼이 추가돼 있음.
+  `careers_jobs.show_related`(admin 9번 항목)는 상세 페이지 하단에 **다른 브랜드 공고**(`jobs`
+  테이블, `/jobs/[id]`로 링크)를 노출할지 여부다 — 자사 공고 상호 추천이 아님, 혼동 주의.
+- **인재풀 등록 폼(`CareersApplyForm.tsx`)은 이력서 파일 첨부가 필수**다. Supabase Storage의 비공개
+  `resumes` 버킷(`0005_resume_storage.sql`)에 업로드 후 `career_applications.resume_path`에
+  경로를 저장한다. anon은 insert만 가능(RLS), 조회는 관리자만.
 - 관리자 인증: **Supabase Auth 이메일/비밀번호** (exam과 계정 공유). 관리자 계정은
   Supabase Dashboard → Authentication → Users에서 관리. GitHub OAuth 아님.
 - 폰트: Pretendard Variable(CDN). 아이콘: Phosphor Icons(`@phosphor-icons/web` CDN, regular/bold/fill).

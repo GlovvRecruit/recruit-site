@@ -4,26 +4,53 @@ import { useState } from "react";
 import { JOB_CATEGORIES } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 
+const MAX_RESUME_BYTES = 10 * 1024 * 1024; // 10MB
+const RESUME_ACCEPT = ".pdf,.doc,.docx";
+
 export default function CareersApplyForm() {
   const [name, setName] = useState("");
   const [contact, setContact] = useState("");
   const [roleInterest, setRoleInterest] = useState<string>(JOB_CATEGORIES[0]);
   const [portfolioUrl, setPortfolioUrl] = useState("");
+  const [resumeFile, setResumeFile] = useState<File | null>(null);
   const [status, setStatus] = useState<"idle" | "submitting" | "done">("idle");
+
+  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0] ?? null;
+    if (file && file.size > MAX_RESUME_BYTES) {
+      alert("이력서 파일은 10MB 이하로 올려주세요.");
+      e.target.value = "";
+      setResumeFile(null);
+      return;
+    }
+    setResumeFile(file);
+  }
 
   async function handleSubmit() {
     if (!name.trim() || !contact.trim()) {
       alert("이름과 연락처를 입력해 주세요.");
       return;
     }
+    if (!resumeFile) {
+      alert("이력서 파일을 첨부해 주세요.");
+      return;
+    }
     setStatus("submitting");
     try {
       const supabase = createClient();
+      const ext = resumeFile.name.split(".").pop() ?? "pdf";
+      const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+      const { error: uploadError } = await supabase.storage
+        .from("resumes")
+        .upload(path, resumeFile);
+      if (uploadError) throw uploadError;
+
       await supabase.from("career_applications").insert({
         name: name.trim(),
         contact: contact.trim(),
         role_interest: roleInterest,
         portfolio_url: portfolioUrl.trim() || null,
+        resume_path: path,
       });
     } catch {
       // Supabase 미연결이어도 인재풀 등록 완료 화면은 보여준다.
@@ -73,6 +100,27 @@ export default function CareersApplyForm() {
             placeholder="you@example.com"
             className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm focus:border-[color:var(--brand-pink)] focus:shadow-[0_0_0_3px_rgba(255,0,153,0.1)] focus:outline-none"
           />
+        </label>
+        <label className="block">
+          <span className="mb-1.5 block text-xs font-bold text-gray-600">
+            이력서 <span className="text-[color:var(--brand-pink)]">*</span>
+          </span>
+          <label
+            className="flex cursor-pointer items-center gap-2.5 rounded-lg border-[1.5px] border-dashed border-gray-300 bg-gray-50 px-3.5 py-3 text-[13.5px] text-gray-500"
+          >
+            <i className="ph ph-upload-simple text-lg" />
+            {resumeFile ? (
+              <span className="truncate font-bold text-gray-700">{resumeFile.name}</span>
+            ) : (
+              <span>파일을 선택하거나 드래그해 주세요 · PDF·DOC·DOCX</span>
+            )}
+            <input
+              type="file"
+              accept={RESUME_ACCEPT}
+              onChange={handleFileChange}
+              className="hidden"
+            />
+          </label>
         </label>
         <label className="block">
           <span className="mb-1.5 block text-xs font-bold text-gray-600">관심 직무</span>

@@ -15,12 +15,12 @@ export default async function BrandJobsPage() {
           BEAUTY BRANDS
         </p>
         <h1 className="mb-3 mt-2.5 max-w-[660px] text-[38px] font-extrabold leading-[1.22] tracking-tight">
-          이제 관심 기업의 신규 채용 공고를{" "}
-          <span className="brand-gradient-text">카톡으로</span> 받아보세요
+          이제 관심 기업의 신규 채용 공고를 매주{" "}
+          <span className="brand-gradient-text whitespace-nowrap">카톡으로</span> 받아보세요
         </h1>
         <p className="mb-7 max-w-[560px] text-[15px] text-gray-500">
-          주요 뷰티 기업 채용 공고 — 관심 기업·직무만 골라두면 신규 공고를 카톡으로
-          알려드리고, 지금 열린 공고는 언제든 아래에서 바로 확인할 수 있어요.
+          관심 기업·직무만 골라두면 신규 공고를 매주 카톡으로 안내드려요. 지금 열린 공고는
+          언제든 아래에서 바로 확인할 수 있어요.
         </p>
 
         <AlertCta />

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
+import BrandThumb from "@/components/BrandThumb";
 import CareersDetailActions from "@/components/CareersDetailActions";
-import { getCareersJobs } from "@/lib/data";
+import { getBrands, getCareersJobs, getJobs } from "@/lib/data";
 import type { CareersJob } from "@/lib/types";
 
 const VALUE_ICONS = ["ph-fill ph-sparkle", "ph-fill ph-chart-bar", "ph-fill ph-rocket-launch"];
@@ -162,7 +163,7 @@ const ROLE_FIT = [
     reqs: [
       { text: "고객·바이어 커뮤니케이션", ok: true },
       { text: "B2B 영업·제안 경험", ok: false },
-      { text: "매출 목표 관리 경험", ok: false },
+      { text: "매출 목표 관리 경험", ok: true },
       { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
@@ -171,7 +172,7 @@ const ROLE_FIT = [
     name: "BD·PM",
     reqs: [
       { text: "유관부서 협업·일정 관리 경험", ok: true },
-      { text: "브랜드·파트너 담당자 커뮤니케이션", ok: true },
+      { text: "브랜드·파트너 담당자 커뮤니케이션", ok: false },
       { text: "사업개발·제휴 경험", ok: false },
       { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
@@ -209,7 +210,18 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
     : isIntern
       ? INTERN_VALUES_FALLBACK
       : DEFAULT_VALUES_FALLBACK;
-  const relatedJobs = job.showRelated ? jobs.filter((j) => j.id !== job.id) : [];
+
+  let relatedBrandJobs: { id: string; title: string; jobCategory: string; brandName: string }[] = [];
+  if (job.showRelated) {
+    const [brandJobs, brands] = await Promise.all([getJobs(), getBrands()]);
+    const brandById = new Map(brands.map((b) => [b.id, b]));
+    relatedBrandJobs = brandJobs.slice(0, 4).map((bj) => ({
+      id: bj.id,
+      title: bj.title,
+      jobCategory: bj.jobCategory,
+      brandName: brandById.get(bj.brandId)?.name ?? "브랜드",
+    }));
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
@@ -223,7 +235,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
         <div className="relative mx-auto max-w-[860px] px-5 pb-[60px] pt-14">
           <Link
             href="/careers"
-            className="mb-6 inline-flex items-center gap-1.5 text-[13px] font-bold text-white/70 no-underline"
+            className="mb-8 flex items-center gap-1.5 text-[13px] font-bold text-white/70 no-underline"
           >
             <i className="ph-bold ph-arrow-left" /> 자사 채용
           </Link>
@@ -406,18 +418,26 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
           </section>
         )}
 
-        {relatedJobs.length > 0 && (
+        {relatedBrandJobs.length > 0 && (
           <section className="mt-[52px]">
-            <h2 className="mb-4 text-xl font-extrabold tracking-tight">다른 자사 공고도 확인해보세요</h2>
+            <h2 className="mb-4 text-xl font-extrabold tracking-tight">
+              이런 브랜드 공고도 확인해보세요
+            </h2>
             <div className="grid gap-2.5">
-              {relatedJobs.map((rj) => (
+              {relatedBrandJobs.map((rj) => (
                 <Link
                   key={rj.id}
-                  href={`/careers/${rj.id}`}
+                  href={`/jobs/${rj.id}`}
                   className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-4 py-3.5 text-inherit no-underline hover:bg-gray-50"
                 >
+                  <BrandThumb
+                    name={rj.brandName}
+                    className="h-9 w-9 flex-none rounded-lg"
+                    textClassName="text-sm"
+                    initialOnly
+                  />
                   <span className="flex-none rounded-lg bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-600">
-                    {rj.tag}
+                    {rj.jobCategory}
                   </span>
                   <span className="min-w-0 flex-1 truncate text-sm font-bold">{rj.title}</span>
                   <i className="ph-bold ph-caret-right text-gray-300" />
@@ -426,15 +446,6 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
             </div>
           </section>
         )}
-
-        <div className="mt-[26px] text-center">
-          <Link
-            href="/careers"
-            className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-[26px] py-3.5 text-[15px] font-bold text-white no-underline"
-          >
-            다른 공고 확인하기 <i className="ph-bold ph-arrow-right" />
-          </Link>
-        </div>
 
         <section
           className="mt-[52px] rounded-[24px] p-12 text-center text-white"
