@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
 import { sampleBrands } from "@/data/sample-jobs";
 import { JOB_CATEGORIES, type JobCategory } from "@/lib/types";
@@ -310,6 +311,8 @@ export default function OnboardingPage() {
           </button>
         </div>
       </div>
+
+      <Footer />
     </div>
   );
 }

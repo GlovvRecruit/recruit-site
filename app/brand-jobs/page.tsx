@@ -1,4 +1,5 @@
 import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/Footer";
 import AlertCta from "@/components/AlertCta";
 import BrandJobsBrowser from "@/components/BrandJobsBrowser";
 import { getBrands, getJobs } from "@/lib/data";
@@ -33,6 +34,8 @@ export default async function BrandJobsPage() {
           진행됩니다.
         </p>
       </main>
+
+      <Footer />
     </div>
   );
 }

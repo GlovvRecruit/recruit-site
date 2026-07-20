@@ -1,4 +1,5 @@
 import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/Footer";
 import { getMediaLinks } from "@/lib/data";
 
 function domainOf(url: string) {
@@ -64,6 +65,8 @@ export default async function MediaPage() {
           </section>
         ))}
       </main>
+
+      <Footer />
     </div>
   );
 }

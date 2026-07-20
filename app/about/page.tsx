@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/Footer";
 
 const METRICS = [
   { value: "2,000+", label: "협업 뷰티 브랜드" },
@@ -201,6 +202,8 @@ export default function AboutPage() {
           </Link>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/Footer";
 import CareersApplyForm from "@/components/CareersApplyForm";
 import FaqAccordion from "@/components/FaqAccordion";
 import { getCareersJobs } from "@/lib/data";
@@ -141,6 +142,8 @@ export default async function CareersPage() {
           </section>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

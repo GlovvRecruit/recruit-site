@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
+import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
 import { getBrands, getJobs } from "@/lib/data";
 
@@ -159,6 +160,8 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
           </div>
         </section>
       </main>
+
+      <Footer />
     </div>
   );
 }
