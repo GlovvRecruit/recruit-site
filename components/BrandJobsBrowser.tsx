@@ -4,6 +4,30 @@ import { useMemo, useState } from "react";
 import JobCard from "@/components/JobCard";
 import { JOB_CATEGORIES, type Brand, type Job, type JobCategory } from "@/lib/types";
 
+// 같은 브랜드 공고가 한꺼번에 크롤링되면 created_at이 거의 동일해 목록에서
+// 뭉쳐 보인다. 브랜드별로 라운드로빈으로 섞어 다양한 브랜드가 고르게 노출되게 한다.
+function interleaveByBrand(jobs: Job[]): Job[] {
+  const queues = new Map<string, Job[]>();
+  for (const job of jobs) {
+    const list = queues.get(job.brandId) ?? [];
+    list.push(job);
+    queues.set(job.brandId, list);
+  }
+  const brandQueues = [...queues.values()];
+  const result: Job[] = [];
+  let i = 0;
+  let remaining = jobs.length;
+  while (remaining > 0) {
+    const queue = brandQueues[i % brandQueues.length];
+    if (queue.length > 0) {
+      result.push(queue.shift() as Job);
+      remaining--;
+    }
+    i++;
+  }
+  return result;
+}
+
 export default function BrandJobsBrowser({
   brands,
   jobs,
@@ -13,8 +37,9 @@ export default function BrandJobsBrowser({
 }) {
   const [filter, setFilter] = useState<JobCategory | null>(null);
   const brandById = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
+  const interleaved = useMemo(() => interleaveByBrand(jobs), [jobs]);
 
-  const filtered = filter ? jobs.filter((j) => j.jobCategory === filter) : jobs;
+  const filtered = filter ? interleaved.filter((j) => j.jobCategory === filter) : interleaved;
 
   return (
     <>

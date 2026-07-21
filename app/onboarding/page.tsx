@@ -103,12 +103,25 @@ export default function OnboardingPage() {
     setSubmitting(true);
     try {
       const supabase = supabaseRef.current;
-      await supabase.from("leads").insert({
-        phone,
+      const { data: existing } = await supabase
+        .from("leads")
+        .select("id")
+        .eq("phone", phone)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const leadFields = {
         brand_ids: [...brandIds],
         categories: [...categories],
         marketing_opt_in: marketingConsent,
-      });
+        unsubscribed: false,
+      };
+      if (existing) {
+        await supabase.from("leads").update(leadFields).eq("id", existing.id);
+      } else {
+        await supabase.from("leads").insert({ phone, ...leadFields });
+      }
       if (requestedBrandName.trim()) {
         await supabase.from("brand_requests").insert({
           requested_name: requestedBrandName.trim(),
