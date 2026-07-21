@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import CareersDetailActions from "@/components/CareersDetailActions";
+import ApplyCtaButton from "@/components/ApplyCtaButton";
 import { getCareersJobs } from "@/lib/data";
 import type { CareersJob } from "@/lib/types";
 
@@ -308,7 +309,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
       <main className="mx-auto max-w-[860px] px-5 pb-10 pt-[52px]">
         <section>
           <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
-            WHY GLOVV
+            WHY GLOVV/FLIXX
           </p>
           <h2 className="mb-5 text-2xl font-extrabold tracking-tight">{benefitTitle}</h2>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
@@ -349,6 +350,9 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                 </span>
               ))}
             </div>
+            <p className="mt-6 text-center text-xs font-bold text-gray-400">
+              ... 등 2,000개+
+            </p>
           </div>
         </section>
 
@@ -431,7 +435,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                   </div>
                   <div className="flex gap-2 text-[13px] leading-relaxed text-gray-600">
                     <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
-                    <span>업무 준비 및 브랜드 가이드라인 숙지·파악</span>
+                    <span>글로브/플릭스 가이드라인 숙지 및 테스팅</span>
                   </div>
                 </div>
 
@@ -467,7 +471,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                       "브랜드 세일즈",
                       "인플루언서 관리",
                       "퍼포먼스 마케팅 (메타 광고 운영)",
-                      "AI 애니메이션 실습 참여",
+                      "AI 애니메이션 영상 제작",
                     ].map((t) => (
                       <div key={t} className="flex gap-2">
                         <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
@@ -544,7 +548,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
             </div>
             <div className="mt-6 text-center">
               <Link
-                href="/brand-jobs"
+                href="/brand-jobs/for-interns"
                 className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-[26px] py-3.5 text-[15px] font-bold text-white no-underline"
               >
                 인턴 종료 후 취업할 확률이 높은 채용 공고 확인하기{" "}
@@ -561,9 +565,16 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
           <h2 className="mb-2.5 text-[28px] font-extrabold tracking-tight">
             이력서 없이도 3분 이내 지원 가능
           </h2>
-          <p className="mb-1 text-[15px] leading-relaxed opacity-90">
+          <p className="mb-5 text-[15px] leading-relaxed opacity-90">
             간단한 정보만 남기면 됩니다. 적합한 마감이면 지금 지원해 주세요.
           </p>
+          <ApplyCtaButton
+            jobTitle={job.title}
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-[26px] py-3.5 text-[15px] font-extrabold no-underline"
+          >
+            <span style={{ color: "#b81f6c" }}>이력서 없이 3분 이내 지원하기</span>
+            <i className="ph-bold ph-arrow-right" style={{ color: "#b81f6c" }} />
+          </ApplyCtaButton>
           <p className="mt-5 text-[12.5px] opacity-80">
             문의: youjin@glovv.co.kr · 직무·경력 무관 상시
           </p>

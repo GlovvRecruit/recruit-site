@@ -60,7 +60,7 @@ export default async function CareersPage() {
         <p className="m-0 text-xs font-extrabold tracking-[0.18em] text-[color:var(--brand-pink)]">
           JOIN US
         </p>
-        <h1 className="mb-2 mt-2.5 text-[32px] font-extrabold tracking-tight">Glovv 자사 채용</h1>
+        <h1 className="mb-2 mt-2.5 text-[32px] font-extrabold tracking-tight">Glovv/Flixx 자사 채용</h1>
         <p className="mb-8 max-w-[560px] text-[15px] text-gray-500">
           Glovv·Flixx를 함께 만들 동료를 찾습니다. 지금 열린 포지션이 없어도 인재풀에
           등록해두면 딱 맞는 자리가 열릴 때 먼저 연락드려요.

@@ -48,9 +48,7 @@ export const metadata: Metadata = {
     description: DEFAULT_DESCRIPTION,
   },
   robots: { index: true, follow: true },
-  // 네이버 서치어드바이저(https://searchadvisor.naver.com)에서 사이트 소유 확인 후 발급되는
-  // 코드를 여기에 넣어야 네이버 검색 등록이 가능함 — 사용자가 직접 등록해야 하는 항목.
-  // verification: { other: { "naver-site-verification": "NAVER_SITE_VERIFICATION_CODE" } },
+  verification: { other: { "naver-site-verification": "4bd54effabe516a32910c13cf684e19a183f7d1e" } },
 };
 
 const organizationJsonLd = {
