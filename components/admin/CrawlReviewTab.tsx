@@ -30,10 +30,12 @@ function guessCategory(raw: string | null, title: string): string {
 export default function CrawlReviewTab() {
   const supabase = createClient();
   const [items, setItems] = useState<StagingRow[]>([]);
+  const [titleEdits, setTitleEdits] = useState<Record<string, string>>({});
   const [categoryPicks, setCategoryPicks] = useState<Record<string, string>>({});
   const [regionEdits, setRegionEdits] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
-  const [busyId, setBusyId] = useState<string | null>(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function reload() {
     const { data } = await supabase
@@ -60,57 +62,62 @@ export default function CrawlReviewTab() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function approve(row: StagingRow) {
-    setBusyId(row.id);
+  async function approveAll() {
+    if (items.length === 0) return;
+    setBulkBusy(true);
     try {
-      const { data: brand, error: brandError } = await supabase
+      const distinctBrandNames = [...new Set(items.map((r) => r.brand_name))];
+      const { data: brandRows, error: brandError } = await supabase
         .from("brands")
-        .upsert({ name: row.brand_name }, { onConflict: "name" })
-        .select("id")
-        .single();
-      if (brandError || !brand) {
+        .upsert(
+          distinctBrandNames.map((name) => ({ name })),
+          { onConflict: "name" }
+        )
+        .select("id, name");
+      if (brandError || !brandRows) {
         alert(`브랜드 저장 실패: ${brandError?.message}`);
         return;
       }
+      const brandIdByName = new Map(brandRows.map((b) => [b.name, b.id]));
 
-      const { error: jobError } = await supabase.from("jobs").upsert(
-        {
-          brand_id: brand.id,
-          title: row.title,
-          job_category: categoryPicks[row.id] ?? guessCategory(row.job_category, row.title),
-          career_level: row.career_level,
-          region: regionEdits[row.id] ?? row.region,
-          source_url: row.source_url,
-          status: "open",
-        },
-        { onConflict: "source_url" }
-      );
-      if (jobError) {
-        alert(`공고 저장 실패: ${jobError.message}`);
+      const jobRows = items.map((row) => ({
+        brand_id: brandIdByName.get(row.brand_name),
+        title: titleEdits[row.id] ?? row.title,
+        job_category: categoryPicks[row.id] ?? guessCategory(row.job_category, row.title),
+        career_level: row.career_level,
+        region: regionEdits[row.id] ?? row.region,
+        source_url: row.source_url,
+        status: "open",
+      }));
+      const { error: jobsError } = await supabase
+        .from("jobs")
+        .upsert(jobRows, { onConflict: "source_url" });
+      if (jobsError) {
+        alert(`공고 저장 실패: ${jobsError.message}`);
         return;
       }
 
       await supabase
         .from("crawled_jobs_staging")
         .update({ review_status: "approved", reviewed_at: new Date().toISOString() })
-        .eq("id", row.id);
+        .in(
+          "id",
+          items.map((r) => r.id)
+        );
 
-      setItems((prev) => prev.filter((r) => r.id !== row.id));
+      setItems([]);
     } finally {
-      setBusyId(null);
+      setBulkBusy(false);
     }
   }
 
-  async function reject(row: StagingRow) {
-    setBusyId(row.id);
+  async function deleteRow(row: StagingRow) {
+    setDeletingId(row.id);
     try {
-      await supabase
-        .from("crawled_jobs_staging")
-        .update({ review_status: "rejected", reviewed_at: new Date().toISOString() })
-        .eq("id", row.id);
+      await supabase.from("crawled_jobs_staging").delete().eq("id", row.id);
       setItems((prev) => prev.filter((r) => r.id !== row.id));
     } finally {
-      setBusyId(null);
+      setDeletingId(null);
     }
   }
 
@@ -119,10 +126,24 @@ export default function CrawlReviewTab() {
   return (
     <div>
       <h1 className="mb-1 text-[22px] font-extrabold tracking-tight">크롤링 검수</h1>
-      <p className="mb-5 text-sm text-gray-500">
-        크롤러가 수집한 브랜드 공고입니다. 승인해야 실제 브랜드 공고 페이지에 노출됩니다.
-        대기 중 {items.length}건
+      <p className="mb-1 text-sm text-gray-500">
+        크롤러가 수집한 브랜드 공고입니다. 아직은 제목·직무·경력·지역·원문 링크만 수집되고, 상세
+        설명(주요 업무·자격 요건)은 원문 사이트에서 링크아웃으로만 확인할 수 있어요.
       </p>
+      <p className="mb-5 text-sm text-gray-500">
+        이상한 항목은 삭제하고, 필요하면 제목·직무·지역을 고친 뒤 한 번에 승인하세요. 대기 중{" "}
+        {items.length}건
+      </p>
+
+      <button
+        type="button"
+        disabled={bulkBusy || items.length === 0}
+        onClick={approveAll}
+        className="mb-4 w-full rounded-xl py-3 text-sm font-extrabold text-white disabled:opacity-60"
+        style={{ background: "var(--brand-gradient)" }}
+      >
+        {bulkBusy ? "승인 처리 중..." : `전체 승인 (${items.length}건)`}
+      </button>
 
       {items.length === 0 && (
         <p className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center text-sm text-gray-400">
@@ -147,7 +168,11 @@ export default function CrawlReviewTab() {
                 원문 보기 <i className="ph-bold ph-arrow-up-right" />
               </a>
             </div>
-            <div className="mb-3 text-[15px] font-bold">{row.title}</div>
+            <input
+              value={titleEdits[row.id] ?? row.title}
+              onChange={(e) => setTitleEdits((prev) => ({ ...prev, [row.id]: e.target.value }))}
+              className="mb-3 w-full rounded-lg border border-gray-200 px-3 py-2 text-[15px] font-bold"
+            />
             <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[160px_1fr_140px]">
               <select
                 value={categoryPicks[row.id] ?? guessCategory(row.job_category, row.title)}
@@ -172,25 +197,14 @@ export default function CrawlReviewTab() {
                 {row.career_level ?? "-"} · {row.employment_type ?? "-"}
               </div>
             </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                disabled={busyId === row.id}
-                onClick={() => approve(row)}
-                className="flex-1 rounded-lg py-2.5 text-sm font-extrabold text-white disabled:opacity-60"
-                style={{ background: "var(--brand-gradient)" }}
-              >
-                승인
-              </button>
-              <button
-                type="button"
-                disabled={busyId === row.id}
-                onClick={() => reject(row)}
-                className="rounded-lg border border-gray-200 px-5 py-2.5 text-sm font-bold text-gray-500 disabled:opacity-60"
-              >
-                거절
-              </button>
-            </div>
+            <button
+              type="button"
+              disabled={deletingId === row.id}
+              onClick={() => deleteRow(row)}
+              className="w-full rounded-lg border border-gray-200 py-2.5 text-sm font-bold text-gray-500 disabled:opacity-60"
+            >
+              삭제
+            </button>
           </div>
         ))}
       </div>
