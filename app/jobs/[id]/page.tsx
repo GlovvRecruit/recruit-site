@@ -162,21 +162,32 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
               <p className="text-sm leading-relaxed text-gray-700">{job.requirementsSummary}</p>
             </div>
           )}
-          {!job.description && !job.responsibilitiesSummary && !job.requirementsSummary && (
-            <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px] text-center">
-              <p className="mb-3 text-sm text-gray-500">
-                상세 업무·자격 요건은 원문 공고에서 확인해 주세요.
-              </p>
-              <a
-                href={job.sourceUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-700 no-underline"
-              >
-                원문 공고 보기 <i className="ph-bold ph-arrow-up-right" />
-              </a>
+          {job.descriptionImages && job.descriptionImages.length > 0 && (
+            <div className="card-shadow overflow-hidden rounded-2xl border border-gray-200 bg-white">
+              {job.descriptionImages.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element -- 크롤링 출처 도메인이 제각각이라 next/image 허용목록 대신 일반 img 사용
+                <img key={src} src={src} alt={`${job.title} 상세 이미지 ${i + 1}`} className="block w-full" />
+              ))}
             </div>
           )}
+          {!job.description &&
+            !job.responsibilitiesSummary &&
+            !job.requirementsSummary &&
+            (!job.descriptionImages || job.descriptionImages.length === 0) && (
+              <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px] text-center">
+                <p className="mb-3 text-sm text-gray-500">
+                  상세 업무·자격 요건은 원문 공고에서 확인해 주세요.
+                </p>
+                <a
+                  href={job.sourceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-700 no-underline"
+                >
+                  원문 공고 보기 <i className="ph-bold ph-arrow-up-right" />
+                </a>
+              </div>
+            )}
         </section>
 
         <section className="mt-8">

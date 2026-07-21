@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
-import BrandThumb from "@/components/BrandThumb";
 import { sampleBrands } from "@/data/sample-jobs";
 import { JOB_CATEGORIES, type Brand, type JobCategory } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
@@ -54,6 +53,7 @@ export default function OnboardingPage() {
             logoUrl: b.logo_url,
             profileAi: b.profile_ai,
             profileReviewed: b.profile_reviewed,
+            brandNames: b.brand_names,
           }))
         );
       }
@@ -180,24 +180,23 @@ export default function OnboardingPage() {
             <div className="grid grid-cols-3 gap-2.5">
               {brands.map((brand) => {
                 const active = brandIds.has(brand.id);
+                const names = brand.brandNames ?? [];
+                const brandLine =
+                  names.length > 0
+                    ? `(${names.slice(0, 3).join("·")}${names.length > 3 ? "..." : ""})`
+                    : null;
                 return (
                   <button
                     key={brand.id}
                     type="button"
                     onClick={() => toggleBrand(brand.id)}
                     className={
-                      "flex min-h-16 flex-col items-center justify-center gap-2 rounded-2xl border-[1.5px] bg-white px-2 py-4 transition-shadow " +
+                      "flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border-[1.5px] bg-white px-2 py-3 transition-shadow " +
                       (active
                         ? "border-[color:var(--brand-pink)] shadow-[0_4px_14px_rgba(255,0,153,0.16)]"
                         : "border-gray-200")
                     }
                   >
-                    <BrandThumb
-                      name={brand.name}
-                      className="h-11 w-11 rounded-full"
-                      textClassName="text-sm"
-                      initialOnly
-                    />
                     <span
                       className={
                         "text-center text-[13px] font-bold leading-tight " +
@@ -206,6 +205,11 @@ export default function OnboardingPage() {
                     >
                       {brand.name}
                     </span>
+                    {brandLine && (
+                      <span className="text-center text-[11px] leading-tight text-gray-400">
+                        {brandLine}
+                      </span>
+                    )}
                   </button>
                 );
               })}

@@ -20,6 +20,7 @@ interface CrawledOpening {
   employmentType?: string | null;
   sourceUrl: string;
   description?: string | null;
+  descriptionImages?: string[] | null;
 }
 
 function guessCategory(raw: string | null, title: string): string {
@@ -87,6 +88,7 @@ export async function POST(request: Request) {
       employment_type: item.employmentType ?? null,
       source_url: item.sourceUrl,
       description: item.description ?? null,
+      description_images: item.descriptionImages ?? null,
       last_seen_at: now,
     }));
 
@@ -108,7 +110,9 @@ export async function POST(request: Request) {
   const sourceUrls = rows.map((r) => r.source_url);
   const { data: approvedRows } = await supabase
     .from("crawled_jobs_staging")
-    .select("brand_name, title, job_category, career_level, region, source_url, description")
+    .select(
+      "brand_name, title, job_category, career_level, region, source_url, description, description_images"
+    )
     .in("source_url", sourceUrls)
     .eq("review_status", "approved");
 
@@ -134,6 +138,7 @@ export async function POST(request: Request) {
         region: r.region,
         source_url: r.source_url,
         description: r.description,
+        description_images: r.description_images,
         status: "open",
       }));
       await supabase.from("jobs").upsert(jobRows, { onConflict: "source_url" });

@@ -15,6 +15,7 @@ interface StagingRow {
   employment_type: string | null;
   source_url: string;
   description: string | null;
+  description_images: string[] | null;
   created_at: string;
 }
 
@@ -98,6 +99,7 @@ export default function CrawlReviewTab() {
         region: regionEdits[row.id] ?? row.region,
         source_url: row.source_url,
         description: row.description,
+        description_images: row.description_images,
         status: "open",
       }));
       const { error: jobsError } = await supabase

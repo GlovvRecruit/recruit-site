@@ -9,6 +9,8 @@ export interface Brand {
   logoUrl?: string | null;
   profileAi?: string | null;
   profileReviewed: boolean;
+  /** 법인이 운영하는 대표 소비자 브랜드명(최대 3개 표기) */
+  brandNames?: string[] | null;
 }
 
 export interface Job {
@@ -23,6 +25,8 @@ export interface Job {
   compensationSummary?: string | null;
   /** 크롤링된 공고의 상세 설명(주요 업무·자격 요건·근무 조건 등 원문 전체 텍스트) */
   description?: string | null;
+  /** 설명이 텍스트가 아닌 이미지 배너로만 게시된 경우의 원본 이미지 URL */
+  descriptionImages?: string[] | null;
   sourceUrl: string;
   status: "open" | "closed";
   createdAt: string;

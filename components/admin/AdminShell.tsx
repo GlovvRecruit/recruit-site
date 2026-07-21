@@ -8,12 +8,14 @@ import MediaTab from "@/components/admin/MediaTab";
 import ManagersTab from "@/components/admin/ManagersTab";
 import CrawlReviewTab from "@/components/admin/CrawlReviewTab";
 import BrandRequestsTab from "@/components/admin/BrandRequestsTab";
+import TalentPoolTab from "@/components/admin/TalentPoolTab";
 
 const TABS = [
   { key: "dashboard", label: "대시보드" },
   { key: "jobs", label: "채용 공고" },
   { key: "crawl-review", label: "크롤링 검수" },
   { key: "brand-requests", label: "브랜드 요청" },
+  { key: "talent-pool", label: "상시 인재풀" },
   { key: "media", label: "MEDIA" },
   { key: "managers", label: "매니저" },
 ] as const;
@@ -96,6 +98,7 @@ export default function AdminShell({ email }: { email: string }) {
         {tab === "jobs" && <JobsTab />}
         {tab === "crawl-review" && <CrawlReviewTab />}
         {tab === "brand-requests" && <BrandRequestsTab />}
+        {tab === "talent-pool" && <TalentPoolTab />}
         {tab === "media" && <MediaTab />}
         {tab === "managers" && <ManagersTab />}
       </div>

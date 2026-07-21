@@ -27,6 +27,7 @@ export async function getBrands(): Promise<Brand[]> {
       logoUrl: b.logo_url,
       profileAi: b.profile_ai,
       profileReviewed: b.profile_reviewed,
+      brandNames: b.brand_names,
     }));
   } catch {
     return sampleBrands;
@@ -54,6 +55,7 @@ export async function getJobs(): Promise<Job[]> {
       responsibilitiesSummary: j.responsibilities_summary,
       compensationSummary: j.compensation_summary,
       description: j.description,
+      descriptionImages: j.description_images,
       sourceUrl: j.source_url,
       status: j.status,
       createdAt: j.created_at,
