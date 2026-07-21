@@ -96,10 +96,7 @@ export default function AboutPage() {
             className="block w-full"
           />
           <div className="absolute left-6 top-6 rounded-2xl bg-white/90 px-5 py-4 backdrop-blur-sm sm:left-9 sm:top-9">
-            <span
-              className="text-[26px] font-extrabold leading-tight tracking-tight sm:text-[34px]"
-              style={{ color: "var(--brand-pink)" }}
-            >
+            <span className="brand-gradient-text text-[26px] font-extrabold leading-tight tracking-tight sm:text-[34px]">
               출시 1년만에
               <br />
               연매출 100억원 달성
