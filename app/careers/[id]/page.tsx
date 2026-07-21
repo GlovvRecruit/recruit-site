@@ -382,6 +382,112 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
         {isIntern && (
           <section className="mt-[52px]">
             <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
+              GROWTH ROADMAP
+            </p>
+            <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
+              이렇게 성장해요 — 1년 로드맵
+            </h2>
+
+            <div className="mb-[52px] rounded-2xl border border-gray-200 bg-white p-7">
+              <div className="mb-1.5 flex items-baseline justify-between text-xs text-gray-400">
+                <span>인턴</span>
+                <span>1년 차</span>
+              </div>
+              <div className="mb-2.5 flex h-[46px] w-full overflow-hidden rounded-[10px]">
+                <div
+                  className="flex flex-none items-center justify-center bg-gray-900 text-center text-[11px] font-bold leading-tight text-white"
+                  style={{ flex: "0 0 8%" }}
+                >
+                  1주
+                  <br />
+                  스타트
+                </div>
+                <div
+                  className="flex flex-1 items-center justify-center text-[12px] font-bold"
+                  style={{ background: "#F4C0D1", color: "#72243E" }}
+                >
+                  1~3개월
+                </div>
+                <div
+                  className="flex items-center justify-center text-[12px] font-bold text-white"
+                  style={{ flex: "3", background: "var(--brand-pink)" }}
+                >
+                  4~12개월
+                </div>
+              </div>
+              <div className="mb-7 flex w-full text-[11px] text-gray-400">
+                <div style={{ flex: "0 0 8%" }} />
+                <div className="flex-1 text-center">Q1</div>
+                <div className="text-center" style={{ flex: "3" }}>
+                  Q2 ~ Q4
+                </div>
+              </div>
+
+              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3.5">
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 flex-none rounded-[3px] bg-gray-900" />
+                    <span className="text-sm font-bold">첫 1주 · 스타트</span>
+                  </div>
+                  <div className="flex gap-2 text-[13px] leading-relaxed text-gray-600">
+                    <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
+                    <span>업무 준비 및 브랜드 가이드라인 숙지·파악</span>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 flex-none rounded-[3px]"
+                      style={{ background: "#ED93B1" }}
+                    />
+                    <span className="text-sm font-bold">1~3개월 · 정착</span>
+                  </div>
+                  <div className="grid gap-2 text-[13px] leading-relaxed text-gray-600">
+                    {["브랜드 온보딩", "브랜드 온라인 미팅", "콘텐츠 검수"].map((t) => (
+                      <div key={t} className="flex gap-2">
+                        <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
+                        {t}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-gray-50 p-4">
+                  <div className="mb-3 flex items-center gap-2">
+                    <span
+                      className="h-2.5 w-2.5 flex-none rounded-[3px]"
+                      style={{ background: "#993556" }}
+                    />
+                    <span className="text-sm font-bold">4~12개월 · 확장 &amp; 심화</span>
+                  </div>
+                  <div className="grid gap-2 text-[13px] leading-relaxed text-gray-600">
+                    {[
+                      "브랜드 콘텐츠 피드백",
+                      "브랜드 세일즈",
+                      "인플루언서 관리",
+                      "퍼포먼스 마케팅 (메타 광고 운영)",
+                      "AI 애니메이션 실습 참여",
+                    ].map((t) => (
+                      <div key={t} className="flex gap-2">
+                        <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
+                        {t}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 flex gap-2 border-t border-gray-100 pt-4 text-xs leading-relaxed text-gray-400">
+                <i className="ph ph-info-fill mt-0.5 flex-none" />
+                <span>
+                  고정된 업무 범위는 아니며, 개인 역량과 팀 상황에 따라 일정과 담당 업무는
+                  유연하게 조정됩니다.
+                </span>
+              </div>
+            </div>
+
+            <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
               AFTER 1 YEAR
             </p>
             <h2 className="mb-2 text-2xl font-extrabold tracking-tight">
