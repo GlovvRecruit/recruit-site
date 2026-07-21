@@ -1,9 +1,25 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
 import { getBrands, getJobs } from "@/lib/data";
+
+export async function generateMetadata(props: PageProps<"/jobs/[id]">): Promise<Metadata> {
+  const { id } = await props.params;
+  const [brands, jobs] = await Promise.all([getBrands(), getJobs()]);
+  const job = jobs.find((j) => j.id === id);
+  const brand = job && brands.find((b) => b.id === job.brandId);
+  if (!job || !brand) return {};
+  const description = `${brand.name} ${job.title} 채용 공고. ${job.responsibilitiesSummary}`;
+  return {
+    title: `${job.title} | ${brand.name}`,
+    description,
+    alternates: { canonical: `/jobs/${id}` },
+    openGraph: { title: `${job.title} | ${brand.name}`, description },
+  };
+}
 
 export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
   const { id } = await props.params;
@@ -17,8 +33,25 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
 
   const brandOpenJobs = jobs.filter((j) => j.brandId === brand.id && j.id !== job.id);
 
+  const jobPostingJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    title: job.title,
+    description: job.responsibilitiesSummary,
+    datePosted: job.createdAt,
+    hiringOrganization: { "@type": "Organization", name: brand.name },
+    jobLocation: {
+      "@type": "Place",
+      address: { "@type": "PostalAddress", addressLocality: job.region || "서울", addressCountry: "KR" },
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+      />
       <SiteNav />
 
       <main className="mx-auto max-w-[860px] px-5 pb-[90px] pt-6">

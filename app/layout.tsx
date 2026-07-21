@@ -12,10 +12,34 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const SITE_URL = "https://beauty-recruit.vercel.app";
+const SITE_NAME = "앤마들린 채용";
+const DEFAULT_TITLE = "뷰티 채용 플랫폼 | 앤마들린 채용 (글로브·플릭스)";
+const DEFAULT_DESCRIPTION =
+  "뷰티 채용·뷰티 인턴을 찾는다면 앤마들린 채용에서 글로브·플릭스 자사 채용과 메이저 뷰티 브랜드 채용 공고를 한 번에 확인하세요. 관심 브랜드·직무의 신규 공고는 카카오톡으로 받아볼 수 있어요.";
+
 export const metadata: Metadata = {
-  title: "앤마들린 채용 | 뷰티 브랜드 채용 공고를 카톡으로",
-  description:
-    "관심 뷰티 브랜드·직무의 신규 채용 공고만 골라 카카오톡으로 받아보는 Glovv의 뷰티 채용 큐레이션 서비스.",
+  metadataBase: new URL(SITE_URL),
+  title: { default: DEFAULT_TITLE, template: `%s | ${SITE_NAME}` },
+  description: DEFAULT_DESCRIPTION,
+  keywords: ["뷰티 채용", "뷰티 채용 플랫폼", "뷰티 인턴", "뷰티 브랜드 채용", "화장품 채용"],
+  openGraph: {
+    type: "website",
+    locale: "ko_KR",
+    url: SITE_URL,
+    siteName: SITE_NAME,
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: DEFAULT_TITLE,
+    description: DEFAULT_DESCRIPTION,
+  },
+  robots: { index: true, follow: true },
+  // 네이버 서치어드바이저(https://searchadvisor.naver.com)에서 사이트 소유 확인 후 발급되는
+  // 코드를 여기에 넣어야 네이버 검색 등록이 가능함 — 사용자가 직접 등록해야 하는 항목.
+  // verification: { other: { "naver-site-verification": "NAVER_SITE_VERIFICATION_CODE" } },
 };
 
 export default function RootLayout({

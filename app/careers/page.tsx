@@ -1,9 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import CareersApplyForm from "@/components/CareersApplyForm";
 import FaqAccordion from "@/components/FaqAccordion";
 import { getCareersJobs } from "@/lib/data";
+
+export const metadata: Metadata = {
+  title: "뷰티 인턴·정규직 자사 채용",
+  description:
+    "글로브·플릭스에서 뷰티 인턴과 정규직을 채용합니다. 이력서 없이도 3분 만에 지원할 수 있어요.",
+  alternates: { canonical: "/careers" },
+};
 
 const STEPS = [
   { n: 1, title: "지원서 제출", note: "이력서·포트폴리오" },

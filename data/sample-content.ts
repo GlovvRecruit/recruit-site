@@ -27,6 +27,7 @@ export const sampleCareersJobs: CareersJob[] = [
     benefits:
       "이태원역 1분 거리 사무실 · 오전 9시~오후 6시 근무\n시급 11,000원(월 환산 세전 약 230만원), 성과에 따라 인상\n인턴십 1년 완료 시 대표 추천서 작성 + 정규직 전환 검토",
     showRelated: true,
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "c2",
@@ -39,6 +40,7 @@ export const sampleCareersJobs: CareersJob[] = [
     location: "서울",
     status: "open",
     showRelated: true,
+    createdAt: "2026-06-01T00:00:00Z",
   },
 ];
 

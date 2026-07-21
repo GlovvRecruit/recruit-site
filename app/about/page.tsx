@@ -1,6 +1,14 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
+
+export const metadata: Metadata = {
+  title: "회사 소개",
+  description:
+    "뷰티 채용 플랫폼 글로브(Glovv)와 AI 뷰티 애니메이션 플릭스(Flixx)를 운영하는 앤마들린 주식회사를 소개합니다.",
+  alternates: { canonical: "/about" },
+};
 
 const METRICS = [
   { value: "2,000+", label: "협업 뷰티 브랜드" },

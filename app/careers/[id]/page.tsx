@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
@@ -5,6 +6,21 @@ import Footer from "@/components/Footer";
 import CareersDetailActions from "@/components/CareersDetailActions";
 import { getCareersJobs } from "@/lib/data";
 import type { CareersJob } from "@/lib/types";
+
+export async function generateMetadata(
+  props: PageProps<"/careers/[id]">
+): Promise<Metadata> {
+  const { id } = await props.params;
+  const jobs = await getCareersJobs();
+  const job = jobs.find((j) => j.id === id);
+  if (!job) return {};
+  return {
+    title: job.title,
+    description: job.summary,
+    alternates: { canonical: `/careers/${id}` },
+    openGraph: { title: job.title, description: job.summary },
+  };
+}
 
 const VALUE_ICONS = ["ph-fill ph-sparkle", "ph-fill ph-chart-bar", "ph-fill ph-rocket-launch"];
 
@@ -211,8 +227,34 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
       ? INTERN_VALUES_FALLBACK
       : DEFAULT_VALUES_FALLBACK;
 
+  const jobPostingJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "JobPosting",
+    title: job.title,
+    description: job.summary,
+    datePosted: job.createdAt,
+    employmentType: isIntern ? "INTERN" : "FULL_TIME",
+    hiringOrganization: {
+      "@type": "Organization",
+      name: "앤마들린 주식회사",
+      sameAs: "https://beauty-recruit.vercel.app/about",
+    },
+    jobLocation: {
+      "@type": "Place",
+      address: {
+        "@type": "PostalAddress",
+        addressLocality: job.location || "서울",
+        addressCountry: "KR",
+      },
+    },
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+      />
       <SiteNav />
 
       <section className="relative overflow-hidden text-white" style={{ background: "#0e0a0c" }}>

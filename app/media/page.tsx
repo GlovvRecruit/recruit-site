@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import { getMediaLinks } from "@/lib/data";
+
+export const metadata: Metadata = {
+  title: "미디어",
+  description: "앤마들린의 언론 보도와 오프라인 행사 소식을 모았습니다.",
+  alternates: { canonical: "/media" },
+};
 
 function domainOf(url: string) {
   try {

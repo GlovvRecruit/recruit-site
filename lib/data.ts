@@ -55,6 +55,7 @@ export async function getJobs(): Promise<Job[]> {
       compensationSummary: j.compensation_summary,
       sourceUrl: j.source_url,
       status: j.status,
+      createdAt: j.created_at,
     }));
   } catch {
     return sampleJobs;
@@ -89,6 +90,7 @@ export async function getCareersJobs(): Promise<CareersJob[]> {
       niceToHaves: c.nice_to_haves,
       benefits: c.benefits,
       showRelated: c.show_related ?? true,
+      createdAt: c.created_at,
     }));
   } catch {
     return sampleCareersJobs;

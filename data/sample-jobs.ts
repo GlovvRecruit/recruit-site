@@ -54,6 +54,7 @@ export const sampleJobs: Job[] = [
     compensationSummary: "연 3,200만원, 3개월 수습 후 정규 전환",
     sourceUrl: "https://example.com/careers/glowlab/1",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "j2",
@@ -66,6 +67,7 @@ export const sampleJobs: Job[] = [
     responsibilitiesSummary: "신제품 소싱 및 라인업 기획, 파트너사 협업",
     sourceUrl: "https://example.com/careers/glowlab/2",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "j3",
@@ -79,6 +81,7 @@ export const sampleJobs: Job[] = [
     compensationSummary: "연 3,400만원 ~ 협의",
     sourceUrl: "https://example.com/careers/sensian/1",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "j4",
@@ -91,6 +94,7 @@ export const sampleJobs: Job[] = [
     responsibilitiesSummary: "퍼포먼스 광고 집행 및 최적화, 캠페인 리포팅",
     sourceUrl: "https://example.com/careers/sensian/2",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "j5",
@@ -103,6 +107,7 @@ export const sampleJobs: Job[] = [
     responsibilitiesSummary: "올리브영·H&B 채널 입점 및 관리, 신규 유통 채널 개발",
     sourceUrl: "https://example.com/careers/tencosmetic/1",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "j6",
@@ -116,6 +121,7 @@ export const sampleJobs: Job[] = [
     compensationSummary: "연 3,000만원 + 인센티브",
     sourceUrl: "https://example.com/careers/tencosmetic/2",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "j7",
@@ -128,6 +134,7 @@ export const sampleJobs: Job[] = [
     responsibilitiesSummary: "팝업스토어 기획·운영, 매장 재고 및 현장 인력 관리",
     sourceUrl: "https://example.com/careers/lamure/1",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
   {
     id: "j8",
@@ -140,5 +147,6 @@ export const sampleJobs: Job[] = [
     responsibilitiesSummary: "브랜드 캠페인 기획, 협업 브랜드 발굴 및 관리",
     sourceUrl: "https://example.com/careers/objetbeauty/1",
     status: "open",
+    createdAt: "2026-06-01T00:00:00Z",
   },
 ];

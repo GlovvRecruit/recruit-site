@@ -23,6 +23,7 @@ export interface Job {
   compensationSummary?: string | null;
   sourceUrl: string;
   status: "open" | "closed";
+  createdAt: string;
 }
 
 export type EmploymentType = "intern" | "fulltime";
@@ -53,6 +54,7 @@ export interface CareersJob {
   benefits?: string | null;
   /** 다른 자사 공고 목록을 상세 페이지 하단에 보여줄지 여부 */
   showRelated: boolean;
+  createdAt: string;
 }
 
 export interface MediaLink {
