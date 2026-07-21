@@ -558,8 +558,9 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
           </section>
         )}
 
-        <section
-          className="mt-[52px] rounded-[24px] p-12 text-center text-white"
+        <ApplyCtaButton
+          jobTitle={job.title}
+          className="mt-[52px] block w-full cursor-pointer rounded-[24px] p-12 text-center text-white"
           style={{ background: "var(--brand-gradient)" }}
         >
           <h2 className="mb-2.5 text-[28px] font-extrabold tracking-tight">
@@ -568,17 +569,14 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
           <p className="mb-5 text-[15px] leading-relaxed opacity-90">
             간단한 정보만 남기면 됩니다. 적합한 마감이면 지금 지원해 주세요.
           </p>
-          <ApplyCtaButton
-            jobTitle={job.title}
-            className="inline-flex items-center gap-2 rounded-xl bg-white px-[26px] py-3.5 text-[15px] font-extrabold no-underline"
-          >
+          <span className="inline-flex items-center gap-2 rounded-xl bg-white px-[26px] py-3.5 text-[15px] font-extrabold">
             <span style={{ color: "#b81f6c" }}>이력서 없이 3분 이내 지원하기</span>
             <i className="ph-bold ph-arrow-right" style={{ color: "#b81f6c" }} />
-          </ApplyCtaButton>
+          </span>
           <p className="mt-5 text-[12.5px] opacity-80">
             문의: youjin@glovv.co.kr · 직무·경력 무관 상시
           </p>
-        </section>
+        </ApplyCtaButton>
       </main>
 
       <Footer />

@@ -8,18 +8,14 @@ import { sampleBrands } from "@/data/sample-jobs";
 import { JOB_CATEGORIES, type Brand, type JobCategory } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 
-const STEPS = [1, 2, 3] as const;
+const STEPS = [1, 2] as const;
 
 const STEP_META: Record<(typeof STEPS)[number], { title: string; subtitle: string }> = {
   1: {
-    title: "관심 있는 뷰티 기업을 골라주세요",
-    subtitle: "고른 기업의 신규 공고를 우선으로 보여드려요. 나중에 언제든 바꿀 수 있어요.",
+    title: "관심 있는 뷰티 기업과 직무를 골라주세요",
+    subtitle: "고른 기업·직무의 신규 공고를 우선으로 보여드려요. 나중에 언제든 바꿀 수 있어요.",
   },
   2: {
-    title: "어떤 직무를 찾고 있나요?",
-    subtitle: "찾고 있는 직무를 모두 선택해 주세요.",
-  },
-  3: {
     title: "카카오로 알림을 받아볼까요?",
     subtitle: "채널을 추가하고 알림에 동의하면 신규 공고를 카톡으로 보내드려요.",
   },
@@ -33,6 +29,7 @@ export default function OnboardingPage() {
   const [brandIds, setBrandIds] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Set<JobCategory>>(new Set());
   const [requestedBrandName, setRequestedBrandName] = useState("");
+  const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [phone, setPhone] = useState("");
   const [channelConsent, setChannelConsent] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
@@ -81,13 +78,12 @@ export default function OnboardingPage() {
   const allCategoriesSelected = categories.size === JOB_CATEGORIES.length;
 
   async function handleNext() {
-    if (step < 3) {
-      setStep((s) => (s + 1) as typeof step);
-      return;
-    }
-    if (brandIds.size === 0 && categories.size === 0) {
-      alert("관심 기업 또는 직무를 하나 이상 선택해 주세요.");
-      setStep(1);
+    if (step === 1) {
+      if (brandIds.size === 0 && categories.size === 0) {
+        alert("관심 기업 또는 직무를 하나 이상 선택해 주세요.");
+        return;
+      }
+      setStep(2);
       return;
     }
     const digits = phone.replace(/[^0-9]/g, "");
@@ -152,7 +148,7 @@ export default function OnboardingPage() {
         </div>
 
         <p className="m-0 text-xs font-extrabold tracking-[0.1em] text-[color:var(--brand-pink)]">
-          STEP {step} / 3
+          STEP {step} / 2
         </p>
         <h1 className="mb-1.5 mt-1 text-2xl font-extrabold tracking-tight">
           {STEP_META[step].title}
@@ -161,7 +157,8 @@ export default function OnboardingPage() {
 
         {step === 1 && (
           <>
-            <div className="mb-2.5 flex justify-end">
+            <div className="mb-2.5 flex items-center justify-between">
+              <h2 className="text-sm font-extrabold text-gray-700">관심 기업</h2>
               <button
                 type="button"
                 onClick={() =>
@@ -177,45 +174,58 @@ export default function OnboardingPage() {
                 {allBrandsSelected ? "전체 해제" : "전체 선택"}
               </button>
             </div>
-            <div className="grid grid-cols-3 gap-2.5">
-              {brands.map((brand) => {
-                const active = brandIds.has(brand.id);
-                const names = brand.brandNames ?? [];
-                const brandLine =
-                  names.length > 0
-                    ? `(${names.slice(0, 3).join("·")}${names.length > 3 ? "..." : ""})`
-                    : null;
-                return (
-                  <button
-                    key={brand.id}
-                    type="button"
-                    onClick={() => toggleBrand(brand.id)}
-                    className={
-                      "flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border-[1.5px] bg-white px-2 py-3 transition-shadow " +
-                      (active
-                        ? "border-[color:var(--brand-pink)] shadow-[0_4px_14px_rgba(255,0,153,0.16)]"
-                        : "border-gray-200")
-                    }
-                  >
-                    <span
+            <div className={brandsExpanded ? "" : "relative max-h-[400px] overflow-hidden"}>
+              <div className="grid grid-cols-3 gap-2.5">
+                {brands.map((brand) => {
+                  const active = brandIds.has(brand.id);
+                  const names = brand.brandNames ?? [];
+                  const brandLine =
+                    names.length > 0
+                      ? `(${names.slice(0, 3).join("·")}${names.length > 3 ? "..." : ""})`
+                      : null;
+                  return (
+                    <button
+                      key={brand.id}
+                      type="button"
+                      onClick={() => toggleBrand(brand.id)}
                       className={
-                        "text-center text-[13px] font-bold leading-tight " +
-                        (active ? "text-[#b81f6c]" : "text-gray-800")
+                        "flex min-h-20 flex-col items-center justify-center gap-1 rounded-2xl border-[1.5px] bg-white px-2 py-3 transition-shadow " +
+                        (active
+                          ? "border-[color:var(--brand-pink)] shadow-[0_4px_14px_rgba(255,0,153,0.16)]"
+                          : "border-gray-200")
                       }
                     >
-                      {brand.name}
-                    </span>
-                    {brandLine && (
-                      <span className="text-center text-[11px] leading-tight text-gray-400">
-                        {brandLine}
+                      <span
+                        className={
+                          "text-center text-[13px] font-bold leading-tight " +
+                          (active ? "text-[#b81f6c]" : "text-gray-800")
+                        }
+                      >
+                        {brand.name}
                       </span>
-                    )}
-                  </button>
-                );
-              })}
+                      {brandLine && (
+                        <span className="text-center text-[11px] leading-tight text-gray-400">
+                          {brandLine}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {!brandsExpanded && (
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-gray-50 to-transparent" />
+              )}
             </div>
+            <button
+              type="button"
+              onClick={() => setBrandsExpanded((v) => !v)}
+              className="mx-auto mt-2 flex items-center gap-1 text-[13px] font-bold text-gray-500"
+            >
+              {brandsExpanded ? "접기" : "전체 보기"}
+              <i className={brandsExpanded ? "ph-bold ph-caret-up" : "ph-bold ph-caret-down"} />
+            </button>
 
-            <div className="mt-5 rounded-2xl border border-dashed border-gray-200 bg-white p-4">
+            <div className="mt-4 rounded-2xl border border-dashed border-gray-200 bg-white p-4">
               <span className="mb-1.5 block text-[13px] font-bold text-gray-700">
                 더 많은 회사의 알림을 받아보고 싶으신가요?
               </span>
@@ -226,49 +236,48 @@ export default function OnboardingPage() {
                 className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-sm focus:border-[color:var(--brand-pink)] focus:shadow-[0_0_0_3px_rgba(255,0,153,0.1)] focus:outline-none"
               />
             </div>
+
+            <h2 className="mb-2.5 mt-7 text-sm font-extrabold text-gray-700">관심 직무</h2>
+            <div className="flex flex-wrap gap-2.5">
+              <button
+                type="button"
+                onClick={() =>
+                  setCategories(allCategoriesSelected ? new Set() : new Set(JOB_CATEGORIES))
+                }
+                className={
+                  "rounded-full border-[1.5px] px-5 py-3 text-[14.5px] font-bold " +
+                  (allCategoriesSelected
+                    ? "border-transparent text-white shadow-[0_3px_10px_rgba(250,60,100,0.25)]"
+                    : "border-gray-200 bg-white text-gray-700")
+                }
+                style={allCategoriesSelected ? { background: "var(--brand-gradient)" } : undefined}
+              >
+                전체
+              </button>
+              {JOB_CATEGORIES.map((category) => {
+                const active = categories.has(category);
+                return (
+                  <button
+                    key={category}
+                    type="button"
+                    onClick={() => toggleCategory(category)}
+                    className={
+                      "rounded-full border-[1.5px] px-5 py-3 text-[14.5px] font-bold " +
+                      (active
+                        ? "border-transparent text-white shadow-[0_3px_10px_rgba(250,60,100,0.25)]"
+                        : "border-gray-200 bg-white text-gray-700")
+                    }
+                    style={active ? { background: "var(--brand-gradient)" } : undefined}
+                  >
+                    {category}
+                  </button>
+                );
+              })}
+            </div>
           </>
         )}
 
         {step === 2 && (
-          <div className="flex flex-wrap gap-2.5">
-            <button
-              type="button"
-              onClick={() =>
-                setCategories(allCategoriesSelected ? new Set() : new Set(JOB_CATEGORIES))
-              }
-              className={
-                "rounded-full border-[1.5px] px-5 py-3 text-[14.5px] font-bold " +
-                (allCategoriesSelected
-                  ? "border-transparent text-white shadow-[0_3px_10px_rgba(250,60,100,0.25)]"
-                  : "border-gray-200 bg-white text-gray-700")
-              }
-              style={allCategoriesSelected ? { background: "var(--brand-gradient)" } : undefined}
-            >
-              전체
-            </button>
-            {JOB_CATEGORIES.map((category) => {
-              const active = categories.has(category);
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  onClick={() => toggleCategory(category)}
-                  className={
-                    "rounded-full border-[1.5px] px-5 py-3 text-[14.5px] font-bold " +
-                    (active
-                      ? "border-transparent text-white shadow-[0_3px_10px_rgba(250,60,100,0.25)]"
-                      : "border-gray-200 bg-white text-gray-700")
-                  }
-                  style={active ? { background: "var(--brand-gradient)" } : undefined}
-                >
-                  {category}
-                </button>
-              );
-            })}
-          </div>
-        )}
-
-        {step === 3 && (
           <div className="grid gap-3">
             <div
               className="flex items-center gap-3.5 rounded-2xl p-[18px]"
@@ -360,12 +369,12 @@ export default function OnboardingPage() {
             onClick={handleNext}
             className="flex-1 rounded-xl py-3.5 text-[15px] font-extrabold disabled:opacity-60"
             style={
-              step === 3
+              step === 2
                 ? { background: "var(--kakao-yellow)", color: "var(--kakao-brown)" }
                 : { background: "var(--gray-900)", color: "#fff" }
             }
           >
-            {step === 3 ? (submitting ? "처리 중..." : "알림 받고 시작하기") : "다음"}
+            {step === 2 ? (submitting ? "처리 중..." : "알림 받고 시작하기") : "다음"}
           </button>
         </div>
       </div>
