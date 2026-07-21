@@ -145,5 +145,62 @@ export async function POST(request: Request) {
     }
   }
 
-  return Response.json({ ok: true, upserted: rows.length, autoRefreshed: approvedRows?.length ?? 0 });
+  // 이번 크롤링에서 더 이상 보이지 않는(=마감/삭제된) 공고는 브랜드·플랫폼 단위로 정리한다.
+  // 브랜드별로 하나도 못 가져온 경우(크롤링 실패 가능성)는 안전하게 건너뛴다 —
+  // 그렇지 않으면 사이트 점검 등으로 크롤링이 실패했을 때 그 브랜드 공고가 전부 삭제될 수 있다.
+  const groups = new Map<string, { platform: string; brand: string; urls: Set<string> }>();
+  for (const r of rows) {
+    const key = `${r.source_platform}::${r.brand_name}`;
+    if (!groups.has(key)) {
+      groups.set(key, { platform: r.source_platform, brand: r.brand_name, urls: new Set() });
+    }
+    groups.get(key)!.urls.add(r.source_url);
+  }
+
+  let staleJobsDeleted = 0;
+  let staleStagingDeleted = 0;
+  for (const { platform, brand, urls } of groups.values()) {
+    if (urls.size === 0) continue;
+
+    const { data: brandRow } = await supabase
+      .from("brands")
+      .select("id")
+      .eq("name", brand)
+      .maybeSingle();
+
+    if (brandRow) {
+      const { data: existingJobs } = await supabase
+        .from("jobs")
+        .select("id, source_url")
+        .eq("brand_id", brandRow.id);
+      const staleJobIds = (existingJobs ?? [])
+        .filter((j) => !urls.has(j.source_url))
+        .map((j) => j.id);
+      if (staleJobIds.length > 0) {
+        await supabase.from("jobs").delete().in("id", staleJobIds);
+        staleJobsDeleted += staleJobIds.length;
+      }
+    }
+
+    const { data: existingStaging } = await supabase
+      .from("crawled_jobs_staging")
+      .select("id, source_url")
+      .eq("source_platform", platform)
+      .eq("brand_name", brand);
+    const staleStagingIds = (existingStaging ?? [])
+      .filter((s) => !urls.has(s.source_url))
+      .map((s) => s.id);
+    if (staleStagingIds.length > 0) {
+      await supabase.from("crawled_jobs_staging").delete().in("id", staleStagingIds);
+      staleStagingDeleted += staleStagingIds.length;
+    }
+  }
+
+  return Response.json({
+    ok: true,
+    upserted: rows.length,
+    autoRefreshed: approvedRows?.length ?? 0,
+    staleJobsDeleted,
+    staleStagingDeleted,
+  });
 }
