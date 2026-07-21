@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { JOB_CATEGORIES } from "@/lib/types";
 
 interface ApifyWebhookPayload {
   eventType?: string;
@@ -18,7 +19,21 @@ interface CrawledOpening {
   region?: string | null;
   employmentType?: string | null;
   sourceUrl: string;
-  raw?: unknown;
+  description?: string | null;
+}
+
+function guessCategory(raw: string | null, title: string): string {
+  const text = `${raw ?? ""} ${title}`.toLowerCase();
+  if (/(변호사|법무|legal|compliance|컴플라이언스)/.test(text)) return "기타";
+  if (/(회계|재무|finance|accounting|\bir\b|공시)/.test(text)) return "기타";
+  if (/(인사|hr|총무|human resource)/.test(text)) return "기타";
+  if (/(연구|r&d|개발자|엔지니어|\bit\b|디자이너|design|생산|제조|품질|qc\b)/.test(text)) return "기타";
+  if (/(sales|영업|세일즈)/.test(text)) return "세일즈";
+  if (/\bmd\b/.test(text)) return "MD";
+  if (/(marketing|마케팅|\bpr\b|홍보|콘텐츠)/.test(text)) return "마케팅";
+  if (/(\bbd\b|\bpm\b|제휴|사업개발)/.test(text)) return "BD·PM";
+  if (/(operations|scm|운영|물류|\bcs\b)/.test(text)) return "운영";
+  return "기타";
 }
 
 export async function POST(request: Request) {
@@ -71,7 +86,7 @@ export async function POST(request: Request) {
       region: item.region ?? null,
       employment_type: item.employmentType ?? null,
       source_url: item.sourceUrl,
-      raw_payload: item.raw ?? null,
+      description: item.description ?? null,
       last_seen_at: now,
     }));
 
@@ -88,5 +103,42 @@ export async function POST(request: Request) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
-  return Response.json({ ok: true, upserted: rows.length });
+  // 이미 승인된 공고는 admin 재승인 없이 최신 크롤링 내용(설명·경력 표기 등)으로 자동 갱신한다.
+  // 아직 대기 중(신규)인 공고는 admin 검수 전까지 실제 jobs 테이블에 반영하지 않는다.
+  const sourceUrls = rows.map((r) => r.source_url);
+  const { data: approvedRows } = await supabase
+    .from("crawled_jobs_staging")
+    .select("brand_name, title, job_category, career_level, region, source_url, description")
+    .in("source_url", sourceUrls)
+    .eq("review_status", "approved");
+
+  if (approvedRows && approvedRows.length > 0) {
+    const distinctBrandNames = [...new Set(approvedRows.map((r) => r.brand_name))];
+    const { data: brandRows, error: brandError } = await supabase
+      .from("brands")
+      .upsert(
+        distinctBrandNames.map((name) => ({ name })),
+        { onConflict: "name" }
+      )
+      .select("id, name");
+
+    if (!brandError && brandRows) {
+      const brandIdByName = new Map(brandRows.map((b) => [b.name, b.id]));
+      const jobRows = approvedRows.map((r) => ({
+        brand_id: brandIdByName.get(r.brand_name),
+        title: r.title,
+        job_category: JOB_CATEGORIES.includes(r.job_category as (typeof JOB_CATEGORIES)[number])
+          ? r.job_category
+          : guessCategory(r.job_category, r.title),
+        career_level: r.career_level,
+        region: r.region,
+        source_url: r.source_url,
+        description: r.description,
+        status: "open",
+      }));
+      await supabase.from("jobs").upsert(jobRows, { onConflict: "source_url" });
+    }
+  }
+
+  return Response.json({ ok: true, upserted: rows.length, autoRefreshed: approvedRows?.length ?? 0 });
 }

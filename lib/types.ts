@@ -1,6 +1,6 @@
 // supabase/migrations/0001_init.sql 과 1:1 대응하는 클라이언트 타입.
 
-export const JOB_CATEGORIES = ["마케팅", "MD", "BD·PM", "운영", "세일즈"] as const;
+export const JOB_CATEGORIES = ["마케팅", "MD", "BD·PM", "운영", "세일즈", "기타"] as const;
 export type JobCategory = (typeof JOB_CATEGORIES)[number];
 
 export interface Brand {
@@ -18,9 +18,11 @@ export interface Job {
   jobCategory: JobCategory;
   careerLevel: string;
   region: string;
-  requirementsSummary: string;
-  responsibilitiesSummary: string;
+  requirementsSummary?: string | null;
+  responsibilitiesSummary?: string | null;
   compensationSummary?: string | null;
+  /** 크롤링된 공고의 상세 설명(주요 업무·자격 요건·근무 조건 등 원문 전체 텍스트) */
+  description?: string | null;
   sourceUrl: string;
   status: "open" | "closed";
   createdAt: string;

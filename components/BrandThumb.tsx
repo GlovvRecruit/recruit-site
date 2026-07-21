@@ -11,14 +11,11 @@ export default function BrandThumb({
 }) {
   return (
     <div
-      className={`flex items-center justify-center overflow-hidden ${className}`}
-      style={{
-        background: "linear-gradient(135deg, rgba(250,112,53,.12), rgba(255,0,153,.12))",
-      }}
+      className={`flex items-center justify-center overflow-hidden border border-gray-100 bg-white ${className}`}
       aria-hidden
     >
       <span
-        className={`whitespace-nowrap font-extrabold tracking-tight text-[#b81f6c] ${textClassName}`}
+        className={`whitespace-nowrap font-extrabold tracking-tight text-gray-900 ${textClassName}`}
       >
         {initialOnly ? name.slice(0, 1) : name}
       </span>

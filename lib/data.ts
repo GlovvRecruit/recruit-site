@@ -53,6 +53,7 @@ export async function getJobs(): Promise<Job[]> {
       requirementsSummary: j.requirements_summary,
       responsibilitiesSummary: j.responsibilities_summary,
       compensationSummary: j.compensation_summary,
+      description: j.description,
       sourceUrl: j.source_url,
       status: j.status,
       createdAt: j.created_at,

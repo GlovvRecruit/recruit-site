@@ -6,7 +6,19 @@ import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
 import { getBrands, getJobs } from "@/lib/data";
 
-function buildJobDescription(job: { title: string; jobCategory: string; region: string; responsibilitiesSummary?: string | null }, brandName: string) {
+function buildJobDescription(
+  job: {
+    title: string;
+    jobCategory: string;
+    region: string;
+    description?: string | null;
+    responsibilitiesSummary?: string | null;
+  },
+  brandName: string
+) {
+  if (job.description) {
+    return `${brandName} ${job.title} 채용 공고. ${job.description}`;
+  }
   if (job.responsibilitiesSummary) {
     return `${brandName} ${job.title} 채용 공고. ${job.responsibilitiesSummary}`;
   }
@@ -19,7 +31,7 @@ export async function generateMetadata(props: PageProps<"/jobs/[id]">): Promise<
   const job = jobs.find((j) => j.id === id);
   const brand = job && brands.find((b) => b.id === job.brandId);
   if (!job || !brand) return {};
-  const description = buildJobDescription(job, brand.name);
+  const description = buildJobDescription(job, brand.name).slice(0, 200);
   return {
     title: `${job.title} | ${brand.name}`,
     description,
@@ -128,7 +140,15 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
         </div>
 
         <section className="mt-9 grid gap-5">
-          {job.responsibilitiesSummary && (
+          {job.description && (
+            <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px]">
+              <h2 className="mb-3.5 text-base font-extrabold tracking-tight">상세 내용</h2>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-gray-700">
+                {job.description}
+              </p>
+            </div>
+          )}
+          {!job.description && job.responsibilitiesSummary && (
             <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px]">
               <h2 className="mb-3.5 text-base font-extrabold tracking-tight">주요 업무</h2>
               <p className="text-sm leading-relaxed text-gray-700">
@@ -136,13 +156,13 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
               </p>
             </div>
           )}
-          {job.requirementsSummary && (
+          {!job.description && job.requirementsSummary && (
             <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px]">
               <h2 className="mb-3.5 text-base font-extrabold tracking-tight">요구 경력</h2>
               <p className="text-sm leading-relaxed text-gray-700">{job.requirementsSummary}</p>
             </div>
           )}
-          {!job.responsibilitiesSummary && !job.requirementsSummary && (
+          {!job.description && !job.responsibilitiesSummary && !job.requirementsSummary && (
             <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px] text-center">
               <p className="mb-3 text-sm text-gray-500">
                 상세 업무·자격 요건은 원문 공고에서 확인해 주세요.
