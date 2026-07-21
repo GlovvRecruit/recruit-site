@@ -7,9 +7,9 @@ import FaqAccordion from "@/components/FaqAccordion";
 import { getCareersJobs } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "뷰티 인턴·정규직 자사 채용",
+  title: "글로브 채용·플릭스 채용 | 뷰티 인턴·정규직 자사 채용",
   description:
-    "글로브·플릭스에서 뷰티 인턴과 정규직을 채용합니다. 이력서 없이도 3분 만에 지원할 수 있어요.",
+    "글로브 채용, 플릭스 채용 정보를 한 곳에서 확인하세요. 뷰티 인턴과 정규직을 채용합니다. 이력서 없이도 3분 만에 지원할 수 있어요.",
   alternates: { canonical: "/careers" },
 };
 

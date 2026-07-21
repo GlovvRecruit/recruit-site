@@ -4,9 +4,9 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
-  title: "회사 소개",
+  title: "회사 소개 | 글로브·플릭스 운영사",
   description:
-    "뷰티 채용 플랫폼 글로브(Glovv)와 AI 뷰티 애니메이션 플릭스(Flixx)를 운영하는 앤마들린 주식회사를 소개합니다.",
+    "글로브 채용, 플릭스 채용을 진행하는 앤마들린 채용 페이지입니다. 뷰티 채용 플랫폼 글로브(Glovv)와 AI 뷰티 애니메이션 플릭스(Flixx)를 운영하는 앤마들린 주식회사를 소개합니다.",
   alternates: { canonical: "/about" },
 };
 

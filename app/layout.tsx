@@ -22,7 +22,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: { default: DEFAULT_TITLE, template: `%s | ${SITE_NAME}` },
   description: DEFAULT_DESCRIPTION,
-  keywords: ["뷰티 채용", "뷰티 채용 플랫폼", "뷰티 인턴", "뷰티 브랜드 채용", "화장품 채용"],
+  keywords: [
+    "뷰티 채용",
+    "뷰티 채용 플랫폼",
+    "뷰티 인턴",
+    "뷰티 브랜드 채용",
+    "화장품 채용",
+    "글로브 채용",
+    "플릭스 채용",
+    "앤마들린 채용",
+    "Glovv 채용",
+    "Flixx 채용",
+  ],
   openGraph: {
     type: "website",
     locale: "ko_KR",
@@ -40,6 +51,14 @@ export const metadata: Metadata = {
   // 네이버 서치어드바이저(https://searchadvisor.naver.com)에서 사이트 소유 확인 후 발급되는
   // 코드를 여기에 넣어야 네이버 검색 등록이 가능함 — 사용자가 직접 등록해야 하는 항목.
   // verification: { other: { "naver-site-verification": "NAVER_SITE_VERIFICATION_CODE" } },
+};
+
+const organizationJsonLd = {
+  "@context": "https://schema.org/",
+  "@type": "Organization",
+  name: "앤마들린 주식회사",
+  alternateName: ["앤마들린 채용", "글로브", "Glovv", "글로브 채용", "플릭스", "Flixx", "플릭스 채용"],
+  url: SITE_URL,
 };
 
 export default function RootLayout({
@@ -64,6 +83,10 @@ export default function RootLayout({
         <link
           rel="stylesheet"
           href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/fill/style.css"
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
         />
       </head>
       <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">{children}</body>
