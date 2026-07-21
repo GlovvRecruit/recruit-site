@@ -88,6 +88,25 @@ export default function AboutPage() {
       </section>
 
       <main className="mx-auto max-w-[1120px] px-5 pb-[90px] pt-14">
+        <div className="relative mb-10 overflow-hidden rounded-3xl border border-gray-200">
+          {/* eslint-disable-next-line @next/next/no-img-element -- 정적 asset, 최적화 불필요 */}
+          <img
+            src="/glovv-growth-chart.png"
+            alt="출시 1년만에 연매출 100억원 달성 - 글로브 매출 성장 그래프"
+            className="block w-full"
+          />
+          <div className="absolute left-6 top-6 rounded-2xl bg-white/90 px-5 py-4 backdrop-blur-sm sm:left-9 sm:top-9">
+            <span
+              className="text-[26px] font-extrabold leading-tight tracking-tight sm:text-[34px]"
+              style={{ color: "var(--brand-pink)" }}
+            >
+              출시 1년만에
+              <br />
+              연매출 100억원 달성
+            </span>
+          </div>
+        </div>
+
         <div className="mb-16 grid grid-cols-[repeat(auto-fit,minmax(220px,1fr))] gap-4">
           {METRICS.map((m) => (
             <div
@@ -153,25 +172,6 @@ export default function AboutPage() {
                 >
                   글로브 레퍼런스 <i className="ph-bold ph-arrow-up-right" />
                 </a>
-              </div>
-
-              <div className="relative mt-5 overflow-hidden rounded-2xl border border-gray-100">
-                {/* eslint-disable-next-line @next/next/no-img-element -- 정적 asset, 최적화 불필요 */}
-                <img
-                  src="/glovv-growth-chart.png"
-                  alt="글로브 매출 성장 그래프"
-                  className="block w-full"
-                />
-                <div className="absolute left-4 top-4 rounded-xl bg-white/90 px-3.5 py-2.5 backdrop-blur-sm">
-                  <span
-                    className="text-[19px] font-extrabold leading-tight tracking-tight"
-                    style={{ color: "var(--brand-pink)" }}
-                  >
-                    출시 1년만에
-                    <br />
-                    연매출 100억원 달성
-                  </span>
-                </div>
               </div>
             </div>
           </div>
