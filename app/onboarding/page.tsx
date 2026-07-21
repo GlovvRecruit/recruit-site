@@ -1,12 +1,12 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
 import { sampleBrands } from "@/data/sample-jobs";
-import { JOB_CATEGORIES, type JobCategory } from "@/lib/types";
+import { JOB_CATEGORIES, type Brand, type JobCategory } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
 
 const STEPS = [1, 2, 3] as const;
@@ -28,13 +28,38 @@ const STEP_META: Record<(typeof STEPS)[number], { title: string; subtitle: strin
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const supabaseRef = useRef(createClient());
   const [step, setStep] = useState<(typeof STEPS)[number]>(1);
+  const [brands, setBrands] = useState<Brand[]>(sampleBrands);
   const [brandIds, setBrandIds] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Set<JobCategory>>(new Set());
+  const [requestedBrandName, setRequestedBrandName] = useState("");
   const [phone, setPhone] = useState("");
   const [channelConsent, setChannelConsent] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    async function loadBrands() {
+      const { data } = await supabaseRef.current
+        .from("brands")
+        .select("*")
+        .eq("is_active", true)
+        .order("name");
+      if (data && data.length > 0) {
+        setBrands(
+          data.map((b) => ({
+            id: b.id,
+            name: b.name,
+            logoUrl: b.logo_url,
+            profileAi: b.profile_ai,
+            profileReviewed: b.profile_reviewed,
+          }))
+        );
+      }
+    }
+    loadBrands();
+  }, []);
 
   const toggleBrand = (id: string) =>
     setBrandIds((prev) => {
@@ -52,7 +77,7 @@ export default function OnboardingPage() {
       return next;
     });
 
-  const allBrandsSelected = brandIds.size === sampleBrands.length;
+  const allBrandsSelected = brandIds.size === brands.length;
   const allCategoriesSelected = categories.size === JOB_CATEGORIES.length;
 
   async function handleNext() {
@@ -77,13 +102,19 @@ export default function OnboardingPage() {
 
     setSubmitting(true);
     try {
-      const supabase = createClient();
+      const supabase = supabaseRef.current;
       await supabase.from("leads").insert({
         phone,
         brand_ids: [...brandIds],
         categories: [...categories],
         marketing_opt_in: marketingConsent,
       });
+      if (requestedBrandName.trim()) {
+        await supabase.from("brand_requests").insert({
+          requested_name: requestedBrandName.trim(),
+          phone,
+        });
+      }
     } catch {
       // Supabase 미연결 상태에서도 온보딩 완료 자체는 막지 않는다.
     }
@@ -121,9 +152,7 @@ export default function OnboardingPage() {
               <button
                 type="button"
                 onClick={() =>
-                  setBrandIds(
-                    allBrandsSelected ? new Set() : new Set(sampleBrands.map((b) => b.id))
-                  )
+                  setBrandIds(allBrandsSelected ? new Set() : new Set(brands.map((b) => b.id)))
                 }
                 className={
                   "rounded-full border px-4 py-2 text-[13px] font-bold " +
@@ -136,7 +165,7 @@ export default function OnboardingPage() {
               </button>
             </div>
             <div className="grid grid-cols-3 gap-2.5">
-              {sampleBrands.map((brand) => {
+              {brands.map((brand) => {
                 const active = brandIds.has(brand.id);
                 return (
                   <button
@@ -167,6 +196,18 @@ export default function OnboardingPage() {
                   </button>
                 );
               })}
+            </div>
+
+            <div className="mt-5 rounded-2xl border border-dashed border-gray-200 bg-white p-4">
+              <span className="mb-1.5 block text-[13px] font-bold text-gray-700">
+                더 많은 회사의 알림을 받아보고 싶으신가요?
+              </span>
+              <input
+                value={requestedBrandName}
+                onChange={(e) => setRequestedBrandName(e.target.value)}
+                placeholder="회사명을 입력해 주세요"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-sm focus:border-[color:var(--brand-pink)] focus:shadow-[0_0_0_3px_rgba(255,0,153,0.1)] focus:outline-none"
+              />
             </div>
           </>
         )}
