@@ -179,7 +179,7 @@ const ROLE_FIT = [
     name: "세일즈",
     reqs: [
       { text: "고객·바이어 커뮤니케이션", ok: true },
-      { text: "B2B 영업·제안 경험", ok: false },
+      { text: "B2B 영업·제안 경험", ok: true },
       { text: "매출 목표 관리 경험", ok: true },
       { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
@@ -189,7 +189,7 @@ const ROLE_FIT = [
     name: "BD·PM",
     reqs: [
       { text: "유관부서 협업·일정 관리 경험", ok: true },
-      { text: "브랜드·파트너 담당자 커뮤니케이션", ok: false },
+      { text: "브랜드·파트너 담당자 커뮤니케이션", ok: true },
       { text: "사업개발·제휴 경험", ok: false },
       { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
@@ -199,7 +199,7 @@ const ROLE_FIT = [
     name: "MD",
     reqs: [
       { text: "뷰티 트렌드에 대한 높은 이해", ok: true },
-      { text: "상품기획·시즌 라인업 구성 경험", ok: false },
+      { text: "판매 데이터 기반 트렌드 분석 경험", ok: true },
       { text: "리오더·재고 관리 경험", ok: false },
       { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
