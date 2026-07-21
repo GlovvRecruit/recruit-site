@@ -21,6 +21,25 @@ const STEP_META: Record<(typeof STEPS)[number], { title: string; subtitle: strin
   },
 };
 
+// 브랜드명 글자수가 많으면 카드가 넘치므로, 합쳐서 일정 길이를 넘지 않는 선까지만 표시한다.
+function buildBrandLine(names: string[]): string | null {
+  if (names.length === 0) return null;
+
+  const MAX_CHARS = 18;
+  const shown: string[] = [];
+  let total = 0;
+  for (const name of names) {
+    const added = shown.length === 0 ? name.length : name.length + 1;
+    if (shown.length > 0 && total + added > MAX_CHARS) break;
+    shown.push(name);
+    total += added;
+  }
+  if (shown.length === 0) shown.push(names[0]);
+
+  const hasMore = shown.length < names.length;
+  return `(${shown.join("·")}${hasMore ? "..." : ""})`;
+}
+
 export default function OnboardingPage() {
   const router = useRouter();
   const supabaseRef = useRef(createClient());
@@ -179,10 +198,7 @@ export default function OnboardingPage() {
                 {brands.map((brand) => {
                   const active = brandIds.has(brand.id);
                   const names = brand.brandNames ?? [];
-                  const brandLine =
-                    names.length > 0
-                      ? `(${names.slice(0, 3).join("·")}${names.length > 3 ? "..." : ""})`
-                      : null;
+                  const brandLine = buildBrandLine(names);
                   return (
                     <button
                       key={brand.id}
