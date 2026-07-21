@@ -6,13 +6,20 @@ import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
 import { getBrands, getJobs } from "@/lib/data";
 
+function buildJobDescription(job: { title: string; jobCategory: string; region: string; responsibilitiesSummary?: string | null }, brandName: string) {
+  if (job.responsibilitiesSummary) {
+    return `${brandName} ${job.title} 채용 공고. ${job.responsibilitiesSummary}`;
+  }
+  return `${brandName}에서 ${job.jobCategory} 직무 ${job.title}을(를) 채용합니다. 근무지: ${job.region}. 자세한 내용은 원문 공고에서 확인해 주세요.`;
+}
+
 export async function generateMetadata(props: PageProps<"/jobs/[id]">): Promise<Metadata> {
   const { id } = await props.params;
   const [brands, jobs] = await Promise.all([getBrands(), getJobs()]);
   const job = jobs.find((j) => j.id === id);
   const brand = job && brands.find((b) => b.id === job.brandId);
   if (!job || !brand) return {};
-  const description = `${brand.name} ${job.title} 채용 공고. ${job.responsibilitiesSummary}`;
+  const description = buildJobDescription(job, brand.name);
   return {
     title: `${job.title} | ${brand.name}`,
     description,
@@ -37,7 +44,7 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
     "@context": "https://schema.org/",
     "@type": "JobPosting",
     title: job.title,
-    description: job.responsibilitiesSummary,
+    description: buildJobDescription(job, brand.name),
     datePosted: job.createdAt,
     hiringOrganization: { "@type": "Organization", name: brand.name },
     jobLocation: {
@@ -121,16 +128,35 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
         </div>
 
         <section className="mt-9 grid gap-5">
-          <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px]">
-            <h2 className="mb-3.5 text-base font-extrabold tracking-tight">주요 업무</h2>
-            <p className="text-sm leading-relaxed text-gray-700">
-              {job.responsibilitiesSummary}
-            </p>
-          </div>
-          <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px]">
-            <h2 className="mb-3.5 text-base font-extrabold tracking-tight">요구 경력</h2>
-            <p className="text-sm leading-relaxed text-gray-700">{job.requirementsSummary}</p>
-          </div>
+          {job.responsibilitiesSummary && (
+            <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px]">
+              <h2 className="mb-3.5 text-base font-extrabold tracking-tight">주요 업무</h2>
+              <p className="text-sm leading-relaxed text-gray-700">
+                {job.responsibilitiesSummary}
+              </p>
+            </div>
+          )}
+          {job.requirementsSummary && (
+            <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px]">
+              <h2 className="mb-3.5 text-base font-extrabold tracking-tight">요구 경력</h2>
+              <p className="text-sm leading-relaxed text-gray-700">{job.requirementsSummary}</p>
+            </div>
+          )}
+          {!job.responsibilitiesSummary && !job.requirementsSummary && (
+            <div className="card-shadow rounded-2xl border border-gray-200 bg-white px-6 py-[22px] text-center">
+              <p className="mb-3 text-sm text-gray-500">
+                상세 업무·자격 요건은 원문 공고에서 확인해 주세요.
+              </p>
+              <a
+                href={job.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 text-sm font-bold text-gray-700 no-underline"
+              >
+                원문 공고 보기 <i className="ph-bold ph-arrow-up-right" />
+              </a>
+            </div>
+          )}
         </section>
 
         <section className="mt-8">
