@@ -300,7 +300,7 @@ export default function OnboardingPage() {
               style={{ background: "var(--kakao-yellow)" }}
             >
               <i className="ph-fill ph-chat-circle text-[26px] text-[color:var(--kakao-brown)]" />
-              <div>
+              <div className="flex-1">
                 <div className="text-sm font-extrabold text-[color:var(--kakao-brown)]">
                   앤마들린 채용 카카오 채널 추가
                 </div>
@@ -308,6 +308,14 @@ export default function OnboardingPage() {
                   신규 공고가 뜨면 채널로 알려드려요
                 </div>
               </div>
+              <a
+                href="http://pf.kakao.com/_PhxgfX"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-none rounded-lg bg-white px-3 py-2 text-xs font-bold text-[color:var(--kakao-brown)] no-underline"
+              >
+                채널 추가 <i className="ph-bold ph-arrow-up-right" />
+              </a>
             </div>
 
             <label className="block">
