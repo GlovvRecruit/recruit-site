@@ -12,6 +12,19 @@ interface LeadRow {
   created_at: string;
 }
 
+interface PageViewRow {
+  path: string;
+  event_type: "view" | "deep_scroll";
+  brand_id: string | null;
+}
+
+interface PathStat {
+  path: string;
+  views: number;
+  deepScrolls: number;
+  deepScrollPct: number;
+}
+
 interface Counts {
   brands: number | null;
   openJobs: number | null;
@@ -39,12 +52,13 @@ export default function DashboardTab() {
   const [leads, setLeads] = useState<LeadRow[] | null>(null);
   const [newThisWeek, setNewThisWeek] = useState(0);
   const [brandNameById, setBrandNameById] = useState<Map<string, string>>(new Map());
+  const [pageViews, setPageViews] = useState<PageViewRow[] | null>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const supabase = createClient();
-      const [brands, openJobs, applications, mediaLinks, leadsRes, brandRows] =
+      const [brands, openJobs, applications, mediaLinks, leadsRes, brandRows, pageViewsRes] =
         await Promise.all([
           supabase.from("brands").select("*", { count: "exact", head: true }),
           supabase.from("jobs").select("*", { count: "exact", head: true }).eq("status", "open"),
@@ -52,6 +66,7 @@ export default function DashboardTab() {
           supabase.from("media_links").select("*", { count: "exact", head: true }),
           supabase.from("leads").select("brand_ids, categories, marketing_opt_in, unsubscribed, created_at"),
           supabase.from("brands").select("id, name"),
+          supabase.from("page_views").select("path, event_type, brand_id"),
         ]);
       if (cancelled) return;
       setCounts({
@@ -68,6 +83,7 @@ export default function DashboardTab() {
           .length
       );
       setBrandNameById(new Map((brandRows.data ?? []).map((b) => [b.id, b.name])));
+      setPageViews((pageViewsRes.data as PageViewRow[]) ?? []);
     }
     load();
     return () => {
@@ -126,6 +142,37 @@ export default function DashboardTab() {
         { label: "해지", value: leads.length - activeLeads.length },
       ])
     : [];
+
+  const pathStatsMap = new Map<string, { views: number; deepScrolls: number }>();
+  for (const pv of pageViews ?? []) {
+    const entry = pathStatsMap.get(pv.path) ?? { views: 0, deepScrolls: 0 };
+    if (pv.event_type === "view") entry.views += 1;
+    else entry.deepScrolls += 1;
+    pathStatsMap.set(pv.path, entry);
+  }
+  const pathStats: PathStat[] = [...pathStatsMap.entries()]
+    .map(([path, v]) => ({
+      path,
+      views: v.views,
+      deepScrolls: v.deepScrolls,
+      deepScrollPct: v.views > 0 ? Math.round((v.deepScrolls / v.views) * 100) : 0,
+    }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 12);
+
+  const brandViewCounts = new Map<string, number>();
+  for (const pv of pageViews ?? []) {
+    if (pv.event_type !== "view" || !pv.brand_id) continue;
+    const name = brandNameById.get(pv.brand_id);
+    if (!name) continue;
+    brandViewCounts.set(name, (brandViewCounts.get(name) ?? 0) + 1);
+  }
+  const brandViewBars = toBars(
+    [...brandViewCounts.entries()]
+      .map(([label, value]) => ({ label, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 12)
+  );
 
   return (
     <div>
@@ -241,6 +288,77 @@ export default function DashboardTab() {
         )}
       </div>
 
+      <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-[22px]">
+        <h2 className="mb-1 text-[15px] font-extrabold">관심 브랜드 순위 (조회수 기준)</h2>
+        <p className="mb-4 text-[12.5px] text-gray-400">
+          브랜드 공고 상세 페이지 조회수 기준(상위 12개) — 알림 신청과 별개 지표예요
+        </p>
+        {!pageViews ? (
+          <p className="text-xs text-gray-400">불러오는 중…</p>
+        ) : brandViewBars.length === 0 ? (
+          <p className="text-xs text-gray-400">아직 집계된 조회 데이터가 없습니다.</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-x-7 gap-y-2.5 sm:grid-cols-2">
+            {brandViewBars.map((b, i) => (
+              <div key={b.label} className="flex items-center gap-3">
+                <span className="w-5 flex-none text-xs font-extrabold text-gray-300">
+                  {i + 1}
+                </span>
+                <span className="w-24 flex-none truncate text-[13px] font-semibold text-gray-700">
+                  {b.label}
+                </span>
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className="h-full rounded-full"
+                    style={{ width: `${b.pct}%`, background: "var(--brand-gradient)" }}
+                  />
+                </div>
+                <span className="w-11 flex-none text-right text-xs font-bold text-gray-500">
+                  {b.display}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-[22px]">
+        <h2 className="mb-1 text-[15px] font-extrabold">페이지별 조회수 · 딥스크롤</h2>
+        <p className="mb-4 text-[12.5px] text-gray-400">
+          조회수 상위 12개 페이지 — 딥스크롤은 페이지의 75% 이상을 스크롤한 방문 비율이에요
+        </p>
+        {!pageViews ? (
+          <p className="text-xs text-gray-400">불러오는 중…</p>
+        ) : pathStats.length === 0 ? (
+          <p className="text-xs text-gray-400">아직 집계된 조회 데이터가 없습니다.</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[480px] border-collapse text-[13px]">
+              <thead>
+                <tr className="border-b border-gray-100 text-left text-xs font-bold text-gray-400">
+                  <th className="py-2 pr-3 font-bold">페이지</th>
+                  <th className="py-2 pr-3 text-right font-bold">조회수</th>
+                  <th className="py-2 pr-3 text-right font-bold">딥스크롤 횟수</th>
+                  <th className="py-2 text-right font-bold">딥스크롤 비율</th>
+                </tr>
+              </thead>
+              <tbody>
+                {pathStats.map((s) => (
+                  <tr key={s.path} className="border-b border-gray-50">
+                    <td className="max-w-[280px] truncate py-2 pr-3 font-semibold text-gray-700">
+                      {s.path}
+                    </td>
+                    <td className="py-2 pr-3 text-right font-bold text-gray-700">{s.views}</td>
+                    <td className="py-2 pr-3 text-right text-gray-500">{s.deepScrolls}</td>
+                    <td className="py-2 text-right font-bold text-gray-700">{s.deepScrollPct}%</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
       <div className="grid gap-3 rounded-2xl border border-dashed border-gray-300 bg-white p-5 text-[13px] leading-relaxed text-gray-500">
         <p className="m-0">
           <b className="font-bold text-gray-700">브랜드/공고</b>는 크롤링 파이프라인과 admin
@@ -253,8 +371,8 @@ export default function DashboardTab() {
           자동으로 여기 반영해요.
         </p>
         <p className="m-0">
-          연령대·구직 상태·페이지 조회수 등은 별도 분석 도구(GA·Vercel Analytics 등)를 연결하기
-          전까지는 수집하지 않아요.
+          <b className="font-bold text-gray-700">조회수·딥스크롤</b>은 자체 수집 데이터(Meta Pixel과
+          별개)예요. 연령대·구직 상태 등은 여전히 수집하지 않아요.
         </p>
       </div>
     </div>

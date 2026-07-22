@@ -71,6 +71,7 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
       />
+      <span id="__brand_marker" data-brand-id={brand.id} hidden />
       <SiteNav />
 
       <main className="mx-auto max-w-[860px] px-5 pb-[90px] pt-6">
