@@ -44,7 +44,7 @@ export default async function ForInternsPage() {
           인턴 종료 후 지원하기 좋은 공고
         </h1>
         <p className="mb-7 max-w-[560px] text-[15px] text-gray-500">
-          뷰티 인턴 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
+          글로브/플릭스 뷰티 인턴 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
         </p>
 
         {entryJobs.length === 0 ? (
