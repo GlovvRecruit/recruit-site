@@ -51,6 +51,7 @@ export default function OnboardingPage() {
   const [brandsExpanded, setBrandsExpanded] = useState(false);
   const [phone, setPhone] = useState("");
   const [channelConsent, setChannelConsent] = useState(false);
+  const [channelLinkClicked, setChannelLinkClicked] = useState(false);
   const [marketingConsent, setMarketingConsent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -131,6 +132,9 @@ export default function OnboardingPage() {
         categories: [...categories],
         marketing_opt_in: marketingConsent,
         unsubscribed: false,
+        // 채널 친구 추가 링크를 클릭했을 때만 true로 기록 — 클릭 안 했다고 기존에 이미
+        // 친구인 사용자를 false로 되돌리면 안 되므로, false인 경우엔 필드 자체를 생략한다.
+        ...(channelLinkClicked ? { is_channel_friend: true } : {}),
       };
       if (existing) {
         await supabase.from("leads").update(leadFields).eq("id", existing.id);
@@ -312,6 +316,7 @@ export default function OnboardingPage() {
                 href="http://pf.kakao.com/_PhxgfX"
                 target="_blank"
                 rel="noopener noreferrer"
+                onClick={() => setChannelLinkClicked(true)}
                 className="flex-none rounded-lg bg-white px-3 py-2 text-xs font-bold text-[color:var(--kakao-brown)] no-underline"
               >
                 채널 추가 <i className="ph-bold ph-arrow-up-right" />
