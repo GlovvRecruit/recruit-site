@@ -32,13 +32,25 @@ function isTalentPool(title: string): boolean {
   return TALENT_POOL_PATTERN.test(title);
 }
 
+// SOLAPI 브랜드 메시지(TEXT형)는 치환변수 적용 후 전체 본문이 1300자를 넘으면 발송 자체가
+// 실패한다. 관심 카테고리를 넓게 선택한 구독자는 신규 공고가 수십~수백 건까지 잡힐 수 있어서,
+// 변수 하나당 보여줄 공고 수를 제한하고 나머지는 "더보기" 링크로 유도한다.
+const MAX_ITEMS_PER_SECTION = 3;
+
 function formatJobLines(
-  jobs: { title: string; url: string; brandName?: string }[]
+  jobs: { title: string; url: string; brandName?: string }[],
+  moreUrl: string
 ): string {
   if (jobs.length === 0) return "이번 주 신규 공고가 없어요.";
-  return jobs
-    .map((j) => `· ${j.brandName ? `[${j.brandName}] ` : ""}${j.title}\n  ${j.url}`)
-    .join("\n");
+  const shown = jobs.slice(0, MAX_ITEMS_PER_SECTION);
+  const lines = shown.map(
+    (j) => `· ${j.brandName ? `[${j.brandName}] ` : ""}${j.title}\n  ${j.url}`
+  );
+  const remaining = jobs.length - shown.length;
+  if (remaining > 0) {
+    lines.push(`…외 ${remaining}건 더보기\n  ${moreUrl}`);
+  }
+  return lines.join("\n");
 }
 
 export async function GET(request: Request) {
@@ -113,13 +125,17 @@ export async function GET(request: Request) {
 
   for (const lead of leads) {
     const since = lead.last_sent_at ?? EPOCH;
-    const globeNew = careersJobs.filter((j) => j.created_at > since && !isTalentPool(j.title));
-    const interestNew = jobs.filter(
-      (j) =>
-        j.created_at > since &&
-        !isTalentPool(j.title) &&
-        (lead.brand_ids?.includes(j.brand_id) || lead.categories?.includes(j.job_category))
-    );
+    const globeNew = careersJobs
+      .filter((j) => j.created_at > since && !isTalentPool(j.title))
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+    const interestNew = jobs
+      .filter(
+        (j) =>
+          j.created_at > since &&
+          !isTalentPool(j.title) &&
+          (lead.brand_ids?.includes(j.brand_id) || lead.categories?.includes(j.job_category))
+      )
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
 
     if (globeNew.length === 0 && interestNew.length === 0) {
       skipped += 1;
@@ -127,14 +143,16 @@ export async function GET(request: Request) {
     }
 
     const globeLines = formatJobLines(
-      globeNew.map((j) => ({ title: j.title, url: `${siteUrl}/careers/${j.id}` }))
+      globeNew.map((j) => ({ title: j.title, url: `${siteUrl}/careers/${j.id}` })),
+      `${siteUrl}/careers`
     );
     const interestLines = formatJobLines(
       interestNew.map((j) => ({
         title: j.title,
         url: `${siteUrl}/jobs/${j.id}`,
         brandName: brandNameById.get(j.brand_id),
-      }))
+      })),
+      `${siteUrl}/brand-jobs`
     );
 
     const digits = lead.phone.replace(/[^0-9]/g, "");
