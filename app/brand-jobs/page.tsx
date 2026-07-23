@@ -6,9 +6,9 @@ import BrandJobsBrowser from "@/components/BrandJobsBrowser";
 import { getBrands, getJobs } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "메이저 뷰티 브랜드 채용 공고",
+  title: "메이저 뷰티 브랜드 채용 공고 | 뷰티 취업 정보",
   description:
-    "메이저 뷰티 브랜드의 채용 공고를 한 곳에서 확인하세요. 관심 브랜드·직무를 등록하면 신규 뷰티 채용 공고를 매주 카톡으로 받아볼 수 있어요.",
+    "메이저 뷰티 브랜드의 채용·취업 공고를 한 곳에서 확인하세요. 관심 브랜드·직무를 등록하면 신규 뷰티 채용 공고를 매주 카톡으로 받아볼 수 있어요.",
   alternates: { canonical: "/brand-jobs" },
 };
 

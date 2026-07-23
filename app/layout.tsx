@@ -18,9 +18,9 @@ const geistMono = Geist_Mono({
 
 const SITE_URL = "https://beauty-recruit.vercel.app";
 const SITE_NAME = "앤마들린 채용";
-const DEFAULT_TITLE = "뷰티 채용 플랫폼 | 앤마들린 채용 (글로브·플릭스)";
+const DEFAULT_TITLE = "뷰티 채용·취업 플랫폼 | 앤마들린 채용 (글로브·플릭스)";
 const DEFAULT_DESCRIPTION =
-  "뷰티 채용·뷰티 인턴을 찾는다면 앤마들린 채용에서 글로브·플릭스 자사 채용과 메이저 뷰티 브랜드 채용 공고를 한 번에 확인하세요. 관심 브랜드·직무의 신규 공고는 카카오톡으로 받아볼 수 있어요.";
+  "뷰티 채용·뷰티 취업·뷰티 인턴을 찾는다면 앤마들린 채용에서 글로브·플릭스 자사 채용과 메이저 뷰티 브랜드 채용 공고를 한 번에 확인하세요. 관심 브랜드·직무의 신규 공고는 카카오톡으로 받아볼 수 있어요.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
@@ -29,6 +29,8 @@ export const metadata: Metadata = {
   keywords: [
     "뷰티 채용",
     "뷰티 채용 플랫폼",
+    "뷰티 취업",
+    "뷰티 취업 플랫폼",
     "뷰티 인턴",
     "뷰티 브랜드 채용",
     "화장품 채용",
