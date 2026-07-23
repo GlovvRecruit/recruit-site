@@ -25,6 +25,13 @@ interface JobRow {
 
 const EPOCH = "1970-01-01T00:00:00Z";
 
+// 상시 인재풀/인재 Pool 등록 공고는 "신규 채용 공고"가 아니라 상시 접수용 안내이므로 발송에서 제외한다.
+const TALENT_POOL_PATTERN = /인재\s*풀|인재\s*pool|talent\s*pool/i;
+
+function isTalentPool(title: string): boolean {
+  return TALENT_POOL_PATTERN.test(title);
+}
+
 function formatJobLines(
   jobs: { title: string; url: string; brandName?: string }[]
 ): string {
@@ -105,10 +112,11 @@ export async function GET(request: Request) {
 
   for (const lead of leads) {
     const since = lead.last_sent_at ?? EPOCH;
-    const globeNew = careersJobs.filter((j) => j.created_at > since);
+    const globeNew = careersJobs.filter((j) => j.created_at > since && !isTalentPool(j.title));
     const interestNew = jobs.filter(
       (j) =>
         j.created_at > since &&
+        !isTalentPool(j.title) &&
         (lead.brand_ids?.includes(j.brand_id) || lead.categories?.includes(j.job_category))
     );
 
