@@ -1,4 +1,4 @@
-import type { CareersJob, MediaLink } from "@/lib/types";
+import type { CareersJob, MediaLink, InsightLink } from "@/lib/types";
 
 // Supabase 미연결 시 화면 데모용 폴백 데이터. lib/data.ts에서 조회 실패 시에만 사용.
 
@@ -58,5 +58,22 @@ export const sampleMediaLinks: MediaLink[] = [
     title: "뷰티 릴스 플랫폼 'Glovv', 1주년 세미나 개최… 1,000여 명 참여",
     url: "https://platum.kr/archives/276871",
     createdAt: "2025-06-01T00:00:00.000Z",
+  },
+];
+
+export const sampleInsightLinks: InsightLink[] = [
+  {
+    id: "i1",
+    groupLabel: "웨비나",
+    title: "좋은 광고 콘텐츠 만드는 법",
+    url: "https://glovvrecruit.github.io/brand/",
+    createdAt: "2026-02-01T00:00:00.000Z",
+  },
+  {
+    id: "i2",
+    groupLabel: "웨비나",
+    title: "AI 시대 준비방법",
+    url: "https://slashpage.com/nmodelin/3p4kj92y64511m57q1x8",
+    createdAt: "2026-01-01T00:00:00.000Z",
   },
 ];

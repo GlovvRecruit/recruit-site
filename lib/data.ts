@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { sampleBrands, sampleJobs } from "@/data/sample-jobs";
-import { sampleCareersJobs, sampleMediaLinks } from "@/data/sample-content";
-import type { Brand, CareersJob, Job, MediaLink } from "@/lib/types";
+import { sampleCareersJobs, sampleMediaLinks, sampleInsightLinks } from "@/data/sample-content";
+import type { Brand, CareersJob, Job, MediaLink, InsightLink } from "@/lib/types";
 
 // Supabase 프로젝트가 아직 연결되지 않았거나(.env 미설정) 데이터가 비어 있으면
 // 화면이 비어 보이지 않도록 샘플 데이터로 대체한다. 실제 환경변수가 채워지면
@@ -118,5 +118,26 @@ export async function getMediaLinks(): Promise<MediaLink[]> {
     }));
   } catch {
     return sampleMediaLinks;
+  }
+}
+
+export async function getInsightLinks(): Promise<InsightLink[]> {
+  if (!hasSupabaseEnv) return sampleInsightLinks;
+  try {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("insight_links")
+      .select("*")
+      .order("created_at", { ascending: false });
+    if (error || !data || data.length === 0) return sampleInsightLinks;
+    return data.map((m) => ({
+      id: m.id,
+      groupLabel: m.group_label,
+      title: m.title,
+      url: m.url,
+      createdAt: m.created_at,
+    }));
+  } catch {
+    return sampleInsightLinks;
   }
 }

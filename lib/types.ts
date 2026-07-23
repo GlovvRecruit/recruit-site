@@ -71,6 +71,14 @@ export interface MediaLink {
   createdAt: string;
 }
 
+export interface InsightLink {
+  id: string;
+  groupLabel: string;
+  title: string;
+  url: string;
+  createdAt: string;
+}
+
 export interface Intern {
   id: string;
   name: string;

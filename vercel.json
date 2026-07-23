@@ -5,6 +5,22 @@
       "schedule": "0 19 * * *"
     },
     {
+      "path": "/api/cron/apgroup-crawl",
+      "schedule": "10 19 * * *"
+    },
+    {
+      "path": "/api/cron/bbia-crawl",
+      "schedule": "20 19 * * *"
+    },
+    {
+      "path": "/api/cron/coreana-crawl",
+      "schedule": "30 19 * * *"
+    },
+    {
+      "path": "/api/cron/able-crawl",
+      "schedule": "40 19 * * *"
+    },
+    {
       "path": "/api/cron/kakao-weekly-send",
       "schedule": "0 0 * * 1,4"
     }

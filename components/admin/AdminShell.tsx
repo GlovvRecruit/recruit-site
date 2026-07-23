@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import DashboardTab from "@/components/admin/DashboardTab";
 import JobsTab from "@/components/admin/JobsTab";
 import MediaTab from "@/components/admin/MediaTab";
+import InsightTab from "@/components/admin/InsightTab";
 import ManagersTab from "@/components/admin/ManagersTab";
 import CrawlReviewTab from "@/components/admin/CrawlReviewTab";
 import BrandRequestsTab from "@/components/admin/BrandRequestsTab";
@@ -19,6 +20,7 @@ const TABS = [
   { key: "brand-requests", label: "브랜드 요청" },
   { key: "talent-pool", label: "상시 인재풀" },
   { key: "media", label: "MEDIA" },
+  { key: "insight", label: "INSIGHT" },
   { key: "managers", label: "매니저" },
 ] as const;
 
@@ -103,6 +105,7 @@ export default function AdminShell({ email }: { email: string }) {
         {tab === "brand-requests" && <BrandRequestsTab />}
         {tab === "talent-pool" && <TalentPoolTab />}
         {tab === "media" && <MediaTab />}
+        {tab === "insight" && <InsightTab />}
         {tab === "managers" && <ManagersTab />}
       </div>
     </div>
