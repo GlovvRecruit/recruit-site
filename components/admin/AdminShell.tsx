@@ -16,7 +16,7 @@ const TABS = [
   { key: "dashboard", label: "대시보드" },
   { key: "subscribers", label: "구독자" },
   { key: "jobs", label: "채용 공고" },
-  { key: "crawl-review", label: "크롤링 검수" },
+  { key: "crawl-review", label: "크롤링 공고 관리" },
   { key: "brand-requests", label: "브랜드 요청" },
   { key: "talent-pool", label: "상시 인재풀" },
   { key: "media", label: "MEDIA" },

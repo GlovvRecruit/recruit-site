@@ -18,7 +18,7 @@ function guessCategory(raw: string | null, title: string): string {
   const text = `${raw ?? ""} ${title}`.toLowerCase();
   if (/\bmd\b/.test(text)) return "MD";
   if (/(marketing|marketer|마케팅|마케터)/.test(text)) return "마케팅";
-  if (/(\bbm\b|\bpm\b|기획)/.test(text)) return "BM·PM";
+  if (/(\bbm\b|기획)/.test(text)) return "BM·PM";
   if (/(operation|운영|oper|customer service|customer experience|\bcs\b)/.test(text)) return "운영";
   if (/(영업|세일즈|sales)/.test(text)) return "세일즈";
   return "기타";
@@ -49,7 +49,7 @@ export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId:
     }));
 
   if (rows.length === 0) {
-    return { ok: true, upserted: 0, autoRefreshed: 0, staleJobsDeleted: 0, staleStagingDeleted: 0 } as const;
+    return { ok: true, upserted: 0, published: 0, staleJobsDeleted: 0, staleStagingDeleted: 0 } as const;
   }
 
   const { error } = await supabase
@@ -61,19 +61,30 @@ export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId:
     return { error: error.message, status: 500 } as const;
   }
 
-  // 이미 승인된 공고는 admin 재승인 없이 최신 크롤링 내용(설명·경력 표기 등)으로 자동 갱신한다.
-  // 아직 대기 중(신규)인 공고는 admin 검수 전까지 실제 jobs 테이블에 반영하지 않는다.
+  // 크롤링된 공고는 admin 승인 없이 바로 게시한다. admin은 이후 개별 공고를
+  // "숨김"(review_status='hidden') 또는 "수정"(review_status='edited')으로 표시해 관리한다.
+  // 숨김 처리된 공고는 게시에서 제외하고, 수정된 공고는 admin이 입력한 내용을 크롤링 결과로 덮어쓰지 않는다.
   const sourceUrls = rows.map((r) => r.source_url);
-  const { data: approvedRows } = await supabase
+  const { data: statusRows } = await supabase
     .from("crawled_jobs_staging")
-    .select(
-      "brand_name, title, job_category, career_level, region, source_url, description, description_images"
-    )
-    .in("source_url", sourceUrls)
-    .eq("review_status", "approved");
+    .select("source_url, review_status")
+    .in("source_url", sourceUrls);
+  const statusByUrl = new Map((statusRows ?? []).map((r) => [r.source_url, r.review_status]));
 
-  if (approvedRows && approvedRows.length > 0) {
-    const distinctBrandNames = [...new Set(approvedRows.map((r) => r.brand_name))];
+  const hiddenUrls = rows
+    .filter((r) => statusByUrl.get(r.source_url) === "hidden")
+    .map((r) => r.source_url);
+  if (hiddenUrls.length > 0) {
+    await supabase.from("jobs").delete().in("source_url", hiddenUrls);
+  }
+
+  const publishRows = rows.filter((r) => {
+    const status = statusByUrl.get(r.source_url);
+    return status !== "hidden" && status !== "edited";
+  });
+
+  if (publishRows.length > 0) {
+    const distinctBrandNames = [...new Set(publishRows.map((r) => r.brand_name))];
     const { data: brandRows, error: brandError } = await supabase
       .from("brands")
       .upsert(
@@ -84,7 +95,7 @@ export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId:
 
     if (!brandError && brandRows) {
       const brandIdByName = new Map(brandRows.map((b) => [b.name, b.id]));
-      const jobRows = approvedRows.map((r) => ({
+      const jobRows = publishRows.map((r) => ({
         brand_id: brandIdByName.get(r.brand_name),
         title: r.title,
         job_category: JOB_CATEGORIES.includes(r.job_category as (typeof JOB_CATEGORIES)[number])
@@ -155,7 +166,7 @@ export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId:
   return {
     ok: true,
     upserted: rows.length,
-    autoRefreshed: approvedRows?.length ?? 0,
+    published: publishRows.length,
     staleJobsDeleted,
     staleStagingDeleted,
   } as const;
