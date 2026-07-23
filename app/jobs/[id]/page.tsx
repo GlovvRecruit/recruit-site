@@ -6,6 +6,14 @@ import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
 import { getBrands, getJobs } from "@/lib/data";
 
+const SITE_URL = "https://beauty-recruit.vercel.app";
+
+function guessEmploymentType(careerLevel: string): string {
+  if (/인턴/.test(careerLevel)) return "INTERN";
+  if (/(계약직|프리랜서)/.test(careerLevel)) return "CONTRACTOR";
+  return "FULL_TIME";
+}
+
 function buildJobDescription(
   job: {
     title: string;
@@ -58,6 +66,12 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
     title: job.title,
     description: buildJobDescription(job, brand.name),
     datePosted: job.createdAt,
+    employmentType: guessEmploymentType(job.careerLevel || ""),
+    identifier: {
+      "@type": "PropertyValue",
+      propertyID: "beauty-recruit",
+      value: job.id,
+    },
     hiringOrganization: { "@type": "Organization", name: brand.name },
     jobLocation: {
       "@type": "Place",
@@ -65,11 +79,25 @@ export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
     },
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: `${SITE_URL}/about` },
+      { "@type": "ListItem", position: 2, name: "브랜드 공고", item: `${SITE_URL}/brand-jobs` },
+      { "@type": "ListItem", position: 3, name: job.title, item: `${SITE_URL}/jobs/${job.id}` },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <span id="__brand_marker" data-brand-id={brand.id} hidden />
       <SiteNav />

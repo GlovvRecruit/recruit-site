@@ -232,6 +232,11 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
     description: job.summary,
     datePosted: job.createdAt,
     employmentType: isIntern ? "INTERN" : "FULL_TIME",
+    identifier: {
+      "@type": "PropertyValue",
+      propertyID: "beauty-recruit",
+      value: job.id,
+    },
     hiringOrganization: {
       "@type": "Organization",
       name: "앤마들린 주식회사",
@@ -247,11 +252,30 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
     },
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "홈", item: "https://beauty-recruit.vercel.app/about" },
+      { "@type": "ListItem", position: 2, name: "자사 채용", item: "https://beauty-recruit.vercel.app/careers" },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: job.title,
+        item: `https://beauty-recruit.vercel.app/careers/${job.id}`,
+      },
+    ],
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 pb-24">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <SiteNav />
 

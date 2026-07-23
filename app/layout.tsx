@@ -63,6 +63,17 @@ const organizationJsonLd = {
   name: "앤마들린 주식회사",
   alternateName: ["앤마들린 채용", "글로브", "Glovv", "글로브 채용", "플릭스", "Flixx", "플릭스 채용"],
   url: SITE_URL,
+  logo: `${SITE_URL}/site-icon.png`,
+  description: DEFAULT_DESCRIPTION,
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org/",
+  "@type": "WebSite",
+  name: SITE_NAME,
+  alternateName: ["Glovv 채용", "Flixx 채용"],
+  url: SITE_URL,
+  inLanguage: "ko-KR",
 };
 
 export default function RootLayout({
@@ -91,6 +102,10 @@ export default function RootLayout({
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }}
+        />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
         <Script id="meta-pixel" strategy="afterInteractive">
           {`!function(f,b,e,v,n,t,s)

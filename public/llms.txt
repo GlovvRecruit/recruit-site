@@ -1,0 +1,23 @@
+# 앤마들린 채용
+
+> 뷰티 릴스 플랫폼 Glovv(글로브)와 AI 뷰티 애니메이션 서비스 Flixx(플릭스)를 운영하는
+> 앤마들린 주식회사의 채용 사이트. 자사(Glovv·Flixx) 채용 공고와, 국내 주요 뷰티 브랜드의
+> 채용 공고를 큐레이션해 한곳에서 볼 수 있다.
+
+이 사이트는 두 갈래로 구성된다:
+1. 자사 채용 — Glovv·Flixx의 인턴·정규직 채용 공고, 지원 절차, 자주 묻는 질문(FAQ)
+2. 브랜드 공고 피드 — 아모레퍼시픽·CJ올리브영·LG생활건강 등 뷰티 브랜드의 채용 공고를
+   자동 수집해 마케팅/MD/BM·PM/운영/세일즈 직무별로 제공
+
+## 주요 페이지
+
+- [자사 채용](https://beauty-recruit.vercel.app/careers): Glovv/Flixx 인턴·정규직 채용, 지원 절차, FAQ
+- [브랜드 공고 피드](https://beauty-recruit.vercel.app/brand-jobs): 뷰티 브랜드 채용 공고 목록, 직무·브랜드별 필터
+- [회사 소개](https://beauty-recruit.vercel.app/about): 앤마들린 주식회사, Glovv·Flixx 서비스 소개
+- [미디어](https://beauty-recruit.vercel.app/media): 언론 보도, 오프라인 행사 소식
+- [인사이트](https://beauty-recruit.vercel.app/insight): 퍼포먼스·콘텐츠 마케팅 인사이트, 웨비나
+
+## 참고
+
+- 사이트맵: https://beauty-recruit.vercel.app/sitemap.xml
+- 브랜드 공고 원문은 각 브랜드의 채용 페이지로 링크아웃되며, 이 사이트는 공고 요약·분류만 제공한다.
