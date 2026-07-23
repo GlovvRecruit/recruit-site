@@ -115,6 +115,10 @@ export default function OnboardingPage() {
       alert("카카오 채널 추가에 동의해 주세요.");
       return;
     }
+    if (!marketingConsent) {
+      alert("공고 알림을 받으려면 마케팅 정보 수신에 동의해 주세요.");
+      return;
+    }
 
     setSubmitting(true);
     try {
@@ -373,9 +377,9 @@ export default function OnboardingPage() {
                 {marketingConsent && <i className="ph-bold ph-check text-[13px] text-white" />}
               </span>
               <span className="flex-1">
-                <span className="block text-sm font-bold">마케팅 정보 수신 동의 (선택)</span>
+                <span className="block text-sm font-bold">마케팅 정보 수신 동의 (필수)</span>
                 <span className="mt-0.5 block text-xs text-gray-400">
-                  맞춤 공고·이벤트 소식을 보내드려요
+                  신규 공고 알림 발송을 위해 필요해요
                 </span>
               </span>
             </button>

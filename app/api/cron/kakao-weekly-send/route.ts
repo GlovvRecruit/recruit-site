@@ -96,7 +96,10 @@ export async function GET(request: Request) {
       .from("leads")
       .select("id, phone, brand_ids, categories, last_sent_at")
       .eq("unsubscribed", false)
-      .eq("is_channel_friend", true),
+      .eq("is_channel_friend", true)
+      // 마케팅성 메시지이므로 마케팅 수신 동의가 없으면 절대 발송하지 않는다(가입 폼에서도
+      // 필수로 막아두지만, 과거 데이터·직접 DB 수정 등에 대비해 발송 단계에서도 다시 확인).
+      .eq("marketing_opt_in", true),
     supabase.from("careers_jobs").select("id, title, created_at").eq("status", "open"),
     supabase
       .from("jobs")
