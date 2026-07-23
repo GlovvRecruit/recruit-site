@@ -6,6 +6,21 @@ interface TrackPayload {
   brandId?: string;
 }
 
+function getClientIp(request: Request): string | null {
+  const forwardedFor = request.headers.get("x-forwarded-for");
+  if (forwardedFor) return forwardedFor.split(",")[0].trim();
+  return request.headers.get("x-real-ip");
+}
+
+function isExcludedIp(ip: string | null): boolean {
+  if (!ip) return false;
+  const excluded = (process.env.EXCLUDED_TRACK_IPS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return excluded.includes(ip);
+}
+
 export async function POST(request: Request) {
   let payload: TrackPayload;
   try {
@@ -20,6 +35,10 @@ export async function POST(request: Request) {
   }
   if (eventType !== "view" && eventType !== "deep_scroll") {
     return Response.json({ error: "invalid eventType" }, { status: 400 });
+  }
+
+  if (isExcludedIp(getClientIp(request))) {
+    return Response.json({ ok: true, skipped: "excluded ip" });
   }
 
   const supabase = createAdminClient();
