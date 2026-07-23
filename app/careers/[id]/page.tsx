@@ -160,7 +160,7 @@ const ROLE_FIT = [
     reqs: [
       { text: "뷰티 트렌드·콘텐츠에 대한 이해", ok: true },
       { text: "SNS·숏폼 콘텐츠 운영 경험", ok: true },
-      { text: "마케팅 캠페인 기획·집행 경험", ok: true },
+      { text: "인플루언서 마케팅·시딩 협업 경험", ok: true },
       { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
