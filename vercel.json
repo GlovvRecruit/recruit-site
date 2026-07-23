@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/kakao-weekly-send",
-      "schedule": "0 1 * * 1"
+      "schedule": "0 0 * * 1,4"
     }
   ]
 }
