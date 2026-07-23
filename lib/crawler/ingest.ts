@@ -19,7 +19,7 @@ function guessCategory(raw: string | null, title: string): string {
   if (/\bmd\b/.test(text)) return "MD";
   if (/(marketing|marketer|마케팅|마케터)/.test(text)) return "마케팅";
   if (/(\bbm\b|\bpm\b|기획)/.test(text)) return "BM·PM";
-  if (/(operation|운영|oper|customer service|\bcs\b)/.test(text)) return "운영";
+  if (/(operation|운영|oper|customer service|customer experience|\bcs\b)/.test(text)) return "운영";
   if (/(영업|세일즈|sales)/.test(text)) return "세일즈";
   return "기타";
 }
