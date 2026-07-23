@@ -7,6 +7,20 @@ export default function CareersDetailActions({ jobTitle }: { jobTitle: string })
   const [open, setOpen] = useState(false);
 
   function shareKakao() {
+    if (window.Kakao?.isInitialized()) {
+      window.Kakao.Share.sendDefault({
+        objectType: "text",
+        text: `앤마들린 채용 · ${jobTitle}`,
+        link: { mobileWebUrl: location.href, webUrl: location.href },
+        buttons: [
+          {
+            title: "자세히 보기",
+            link: { mobileWebUrl: location.href, webUrl: location.href },
+          },
+        ],
+      });
+      return;
+    }
     if (navigator.share) {
       navigator.share({ title: `앤마들린 채용 · ${jobTitle}`, url: location.href }).catch(() => {});
     } else {

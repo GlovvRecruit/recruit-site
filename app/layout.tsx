@@ -113,6 +113,16 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
+        <Script
+          src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.1/kakao.min.js"
+          strategy="afterInteractive"
+          onLoad={() => {
+            const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+            if (jsKey && window.Kakao && !window.Kakao.isInitialized()) {
+              window.Kakao.init(jsKey);
+            }
+          }}
+        />
       </head>
       <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
         <Analytics />
