@@ -34,19 +34,26 @@ function isTalentPool(title: string): boolean {
 
 // SOLAPI 브랜드 메시지(TEXT형)는 치환변수 적용 후 전체 본문이 1300자를 넘으면 발송 자체가
 // 실패한다. 관심 카테고리를 넓게 선택한 구독자는 신규 공고가 수십~수백 건까지 잡힐 수 있어서,
-// 변수 하나당 보여줄 공고 수를 제한하고 나머지는 "더보기" 링크로 유도한다.
-const MAX_ITEMS_PER_SECTION = 3;
+// 변수 하나당 최대 10건까지 보여주되 글자수 예산을 넘기면 그 전에 멈추고 나머지는
+// "더보기" 링크로 유도한다.
+const MAX_ITEMS_PER_SECTION = 10;
+const SECTION_CHAR_BUDGET = 550;
 
 function formatJobLines(
   jobs: { title: string; url: string; brandName?: string }[],
   moreUrl: string
 ): string {
   if (jobs.length === 0) return "이번 주 신규 공고가 없어요.";
-  const shown = jobs.slice(0, MAX_ITEMS_PER_SECTION);
-  const lines = shown.map(
-    (j) => `· ${j.brandName ? `[${j.brandName}] ` : ""}${j.title}\n  ${j.url}`
-  );
-  const remaining = jobs.length - shown.length;
+  const lines: string[] = [];
+  let used = 0;
+  for (const j of jobs) {
+    if (lines.length >= MAX_ITEMS_PER_SECTION) break;
+    const line = `· ${j.brandName ? `[${j.brandName}] ` : ""}${j.title}\n  ${j.url}`;
+    if (lines.length > 0 && used + line.length > SECTION_CHAR_BUDGET) break;
+    lines.push(line);
+    used += line.length + 1;
+  }
+  const remaining = jobs.length - lines.length;
   if (remaining > 0) {
     lines.push(`…외 ${remaining}건 더보기\n  ${moreUrl}`);
   }

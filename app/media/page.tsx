@@ -54,8 +54,9 @@ export default async function MediaPage() {
                   rel="noopener noreferrer"
                   className="card-shadow card-shadow-hover flex items-center gap-3.5 rounded-2xl border border-gray-200 bg-white px-[18px] py-4 text-inherit no-underline transition-transform hover:-translate-y-0.5"
                 >
-                  <span className="grid h-11 w-11 flex-none place-items-center rounded-xl border border-gray-200 bg-gray-100 text-[17px] font-extrabold text-gray-500">
-                    {domainOf(m.url).slice(0, 1).toUpperCase()}
+                  <span className="grid h-11 w-11 flex-none place-items-center overflow-hidden rounded-xl border border-gray-200 bg-gray-100">
+                    {/* eslint-disable-next-line @next/next/no-img-element -- 정적 asset, 최적화 불필요 */}
+                    <img src="/site-icon.png" alt="" className="h-full w-full object-cover" />
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15px] font-bold leading-snug">
