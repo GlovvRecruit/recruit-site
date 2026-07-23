@@ -56,6 +56,14 @@ export default function SiteNav() {
               </Link>
             );
           })}
+          <a
+            href="https://glovvrecruit.github.io/brand/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex-none whitespace-nowrap rounded-full px-3.5 py-2 text-sm font-bold tracking-tight text-gray-500 transition-colors hover:text-gray-700"
+          >
+            INSIGHT
+          </a>
         </nav>
       </div>
     </header>
