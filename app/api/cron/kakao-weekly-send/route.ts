@@ -163,8 +163,15 @@ export async function GET(request: Request) {
   try {
     result = await messageService.send(messages);
   } catch (error) {
-    console.error("[kakao-weekly-send] send failed:", error);
-    return Response.json({ error: "send failed", detail: String(error) }, { status: 502 });
+    const failedList =
+      error && typeof error === "object" && "failedMessageList" in error
+        ? (error as { failedMessageList: unknown }).failedMessageList
+        : null;
+    console.error("[kakao-weekly-send] send failed:", error, failedList);
+    return Response.json(
+      { error: "send failed", detail: String(error), failedMessageList: failedList },
+      { status: 502 }
+    );
   }
 
   const failedPhones = new Set((result.failedMessageList ?? []).map((f) => f.to));
