@@ -1,6 +1,6 @@
 // supabase/migrations/0001_init.sql 과 1:1 대응하는 클라이언트 타입.
 
-export const JOB_CATEGORIES = ["마케팅", "MD", "BD·PM", "운영", "세일즈", "기타"] as const;
+export const JOB_CATEGORIES = ["마케팅", "MD", "BM·PM", "운영", "세일즈", "기타"] as const;
 export type JobCategory = (typeof JOB_CATEGORIES)[number];
 
 export interface Brand {

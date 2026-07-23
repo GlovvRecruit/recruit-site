@@ -69,11 +69,4 @@ export const sampleInsightLinks: InsightLink[] = [
     url: "https://glovvrecruit.github.io/brand/",
     createdAt: "2026-02-01T00:00:00.000Z",
   },
-  {
-    id: "i2",
-    groupLabel: "웨비나",
-    title: "AI 시대 준비방법",
-    url: "https://slashpage.com/nmodelin/3p4kj92y64511m57q1x8",
-    createdAt: "2026-01-01T00:00:00.000Z",
-  },
 ];

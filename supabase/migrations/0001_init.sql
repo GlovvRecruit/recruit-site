@@ -25,7 +25,7 @@ create table jobs (
   id                        uuid primary key default gen_random_uuid(),
   brand_id                  uuid not null references brands(id) on delete cascade,
   title                     text not null,
-  job_category              text,               -- 마케팅|MD|BD·PM|운영|세일즈
+  job_category              text,               -- 마케팅|MD|BM·PM|운영|세일즈
   career_level              text,
   region                    text,
   requirements_summary      text,

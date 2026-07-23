@@ -152,7 +152,7 @@ const PARTNER_BRANDS: { name: string; style?: React.CSSProperties }[] = [
   { name: "Huxley", style: { letterSpacing: "0.02em" } },
 ];
 
-// 인턴 1년 후 직무 적합도 — 마케팅/운영/세일즈/BD·PM/MD 순으로 고정 노출.
+// 인턴 1년 후 직무 적합도 — 마케팅/운영/세일즈/BM·PM/MD 순으로 고정 노출.
 // 경력 요건은 제외하고 실제 인턴 수행 업무와 70%↑ 일치하면 "잘 맞아요"로 표시.
 const ROLE_FIT = [
   {
@@ -184,7 +184,7 @@ const ROLE_FIT = [
     ],
   },
   {
-    name: "BD·PM",
+    name: "BM·PM",
     reqs: [
       { text: "유관부서 협업·일정 관리 경험", ok: true },
       { text: "브랜드·파트너 담당자 커뮤니케이션", ok: true },

@@ -100,7 +100,7 @@ export const sampleJobs: Job[] = [
     id: "j5",
     brandId: "b3",
     title: "BD 매니저",
-    jobCategory: "BD·PM",
+    jobCategory: "BM·PM",
     careerLevel: "경력 3년 이상",
     region: "서울 마포구",
     requirementsSummary: "뷰티·유통 업계 BD 경험, 신규 채널 발굴 역량",

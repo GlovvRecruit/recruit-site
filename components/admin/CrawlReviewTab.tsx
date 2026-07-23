@@ -21,15 +21,11 @@ interface StagingRow {
 
 function guessCategory(raw: string | null, title: string): string {
   const text = `${raw ?? ""} ${title}`.toLowerCase();
-  if (/(변호사|법무|legal|compliance|컴플라이언스)/.test(text)) return "기타";
-  if (/(회계|재무|finance|accounting|\bir\b|공시)/.test(text)) return "기타";
-  if (/(인사|hr|총무|human resource)/.test(text)) return "기타";
-  if (/(연구|r&d|개발자|엔지니어|\bit\b|디자이너|design|생산|제조|품질|qc\b)/.test(text)) return "기타";
-  if (/(sales|영업|세일즈)/.test(text)) return "세일즈";
   if (/\bmd\b/.test(text)) return "MD";
-  if (/(marketing|마케팅|\bpr\b|홍보|콘텐츠)/.test(text)) return "마케팅";
-  if (/(\bbd\b|\bpm\b|제휴|사업개발)/.test(text)) return "BD·PM";
-  if (/(operations|scm|운영|물류|\bcs\b)/.test(text)) return "운영";
+  if (/(marketing|marketer|마케팅|마케터)/.test(text)) return "마케팅";
+  if (/(\bbm\b|\bpm\b|기획)/.test(text)) return "BM·PM";
+  if (/(operation|운영|oper|customer service|\bcs\b)/.test(text)) return "운영";
+  if (/(영업|세일즈|sales)/.test(text)) return "세일즈";
   return "기타";
 }
 
@@ -238,7 +234,7 @@ export default function CrawlReviewTab() {
       <div className="mb-8 grid gap-2.5">{mainItems.map(renderRow)}</div>
 
       <h2 className="mb-2 text-base font-extrabold tracking-tight">
-        기타 (마케팅/MD/BD·PM/운영/세일즈에 속하지 않는 직무, {otherItems.length}건)
+        기타 (마케팅/MD/BM·PM/운영/세일즈에 속하지 않는 직무, {otherItems.length}건)
       </h2>
       <p className="mb-2 text-xs text-gray-400">
         법무·회계·인사·연구개발·생산 등 표준 5개 직무에 맞지 않는 공고입니다. 필요 없으면
