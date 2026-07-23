@@ -161,7 +161,7 @@ const ROLE_FIT = [
       { text: "뷰티 트렌드·콘텐츠에 대한 이해", ok: true },
       { text: "SNS·숏폼 콘텐츠 운영 경험", ok: true },
       { text: "인플루언서 마케팅·시딩 협업 경험", ok: true },
-      { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
+      { text: "캠페인 운영 경험", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
@@ -171,7 +171,6 @@ const ROLE_FIT = [
       { text: "데이터 정리·분석 및 리포팅", ok: true },
       { text: "유관부서 협업 경험", ok: true },
       { text: "이커머스 플랫폼 운영 경험", ok: false },
-      { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
@@ -181,7 +180,6 @@ const ROLE_FIT = [
       { text: "고객·바이어 커뮤니케이션", ok: true },
       { text: "B2B 영업·제안 경험", ok: true },
       { text: "매출 목표 관리 경험", ok: true },
-      { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
@@ -190,8 +188,8 @@ const ROLE_FIT = [
     reqs: [
       { text: "유관부서 협업·일정 관리 경험", ok: true },
       { text: "브랜드·파트너 담당자 커뮤니케이션", ok: true },
+      { text: "상품 기획 경험", ok: false },
       { text: "사업개발·제휴 경험", ok: false },
-      { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
@@ -201,7 +199,6 @@ const ROLE_FIT = [
       { text: "뷰티 트렌드에 대한 높은 이해", ok: true },
       { text: "판매 데이터 기반 트렌드 분석 경험", ok: true },
       { text: "리오더·재고 관리 경험", ok: false },
-      { text: "논리적 커뮤니케이션 역량 · 기본 역량", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
@@ -500,8 +497,8 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
             <p className="mb-5 max-w-[660px] text-[13.5px] leading-relaxed text-gray-500">
               각 직무 자격 요건 중 <b className="font-bold text-gray-700">경력 요건은 제외</b>하고,
               인턴 1년간 실제 수행 업무와 <b className="font-bold text-gray-700">70% 이상 일치</b>
-              하면 잘 맞는 직무로 표시했어요. 논리적 커뮤니케이션·데이터 분석 툴 같은 기본 역량은
-              충족으로 간주합니다.
+              하면 잘 맞는 직무로 표시했어요. 데이터 분석 툴 활용 같은 기본 역량은 충족으로
+              간주합니다.
             </p>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(258px,1fr))] gap-4">
               {ROLE_FIT.map((r) => (
