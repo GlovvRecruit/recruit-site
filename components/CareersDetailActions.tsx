@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import CareersApplyModal from "@/components/CareersApplyModal";
+import { ensureKakaoInit } from "@/lib/kakao";
 
 export default function CareersDetailActions({ jobTitle }: { jobTitle: string }) {
   const [open, setOpen] = useState(false);
 
   function shareKakao() {
-    if (window.Kakao?.isInitialized()) {
-      window.Kakao.Share.sendDefault({
+    const kakao = ensureKakaoInit();
+    if (kakao) {
+      kakao.Share.sendDefault({
         objectType: "text",
         text: `앤마들린 채용 · ${jobTitle}`,
         link: { mobileWebUrl: location.href, webUrl: location.href },

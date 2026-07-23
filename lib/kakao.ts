@@ -22,4 +22,12 @@ declare global {
   }
 }
 
-export {};
+/** Kakao SDK 스크립트가 이미 로드돼 있다면 초기화하고 SDK 인스턴스를 반환한다. */
+export function ensureKakaoInit(): KakaoSDK | null {
+  if (typeof window === "undefined" || !window.Kakao) return null;
+  const jsKey = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
+  if (jsKey && !window.Kakao.isInitialized()) {
+    window.Kakao.init(jsKey);
+  }
+  return window.Kakao;
+}
