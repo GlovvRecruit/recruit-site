@@ -105,6 +105,7 @@ export async function GET(request: Request) {
       templateId: string;
       variables: Record<string, string>;
       disableSms: boolean;
+      bms: { targeting: "I"; chatBubbleType: "TEXT" };
     };
   }[] = [];
   const leadByPhone = new Map<string, LeadRow>();
@@ -149,6 +150,7 @@ export async function GET(request: Request) {
           "#{관심공고}": interestLines,
         },
         disableSms: true,
+        bms: { targeting: "I", chatBubbleType: "TEXT" },
       },
     });
   }
