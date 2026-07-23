@@ -36,10 +36,20 @@ export default function BrandJobsBrowser({
   jobs: Job[];
 }) {
   const [filter, setFilter] = useState<JobCategory | null>(null);
+  const [brandFilter, setBrandFilter] = useState<string>("");
   const brandById = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
   const interleaved = useMemo(() => interleaveByBrand(jobs), [jobs]);
 
-  const filtered = filter ? interleaved.filter((j) => j.jobCategory === filter) : interleaved;
+  const brandOptions = useMemo(() => {
+    const idsWithJobs = new Set(jobs.map((j) => j.brandId));
+    return brands
+      .filter((b) => idsWithJobs.has(b.id))
+      .sort((a, b) => a.name.localeCompare(b.name, "ko"));
+  }, [brands, jobs]);
+
+  const filtered = interleaved.filter(
+    (j) => (!filter || j.jobCategory === filter) && (!brandFilter || j.brandId === brandFilter)
+  );
 
   return (
     <>
@@ -47,6 +57,18 @@ export default function BrandJobsBrowser({
         <h2 className="m-0 text-xl font-extrabold tracking-tight">
           지금 열린 공고 <span className="text-[color:var(--brand-pink)]">{filtered.length}</span>
         </h2>
+        <select
+          value={brandFilter}
+          onChange={(e) => setBrandFilter(e.target.value)}
+          className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-bold text-gray-700"
+        >
+          <option value="">전체 브랜드</option>
+          {brandOptions.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1.5">
