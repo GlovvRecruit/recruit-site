@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import DashboardTab from "@/components/admin/DashboardTab";
-import DashboardTab2 from "@/components/admin/DashboardTab2";
 import JobsTab from "@/components/admin/JobsTab";
 import MediaTab from "@/components/admin/MediaTab";
 import InsightTab from "@/components/admin/InsightTab";
@@ -15,7 +14,6 @@ import SubscribersTab from "@/components/admin/SubscribersTab";
 
 const TABS = [
   { key: "dashboard", label: "대시보드" },
-  { key: "dashboard2", label: "대시보드 2" },
   { key: "subscribers", label: "구독자" },
   { key: "jobs", label: "채용 공고" },
   { key: "crawl-review", label: "크롤링 공고 관리" },
@@ -82,15 +80,15 @@ export default function AdminShell({ email }: { email: string }) {
         </button>
       </header>
 
-      <div className="mx-auto max-w-[900px] px-6 py-6">
-        <div className="mb-6 inline-flex gap-1 rounded-full border border-gray-200 bg-white p-1">
+      <div className="mx-auto max-w-[1440px] px-4 py-6 sm:px-8">
+        <div className="mb-6 flex flex-wrap gap-1 rounded-full border border-gray-200 bg-white p-1">
           {TABS.map((t) => (
             <button
               key={t.key}
               type="button"
               onClick={() => setTab(t.key)}
               className={
-                "rounded-full px-[18px] py-2 text-[13.5px] font-bold " +
+                "flex-none whitespace-nowrap rounded-full px-[18px] py-2 text-[13.5px] font-bold " +
                 (tab === t.key ? "text-white" : "text-gray-400")
               }
               style={tab === t.key ? { background: "var(--brand-gradient)" } : undefined}
@@ -101,7 +99,6 @@ export default function AdminShell({ email }: { email: string }) {
         </div>
 
         {tab === "dashboard" && <DashboardTab />}
-        {tab === "dashboard2" && <DashboardTab2 />}
         {tab === "subscribers" && <SubscribersTab />}
         {tab === "jobs" && <JobsTab />}
         {tab === "crawl-review" && <CrawlReviewTab />}

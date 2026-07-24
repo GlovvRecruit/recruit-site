@@ -284,8 +284,8 @@ export default function DashboardTab2() {
   const applySubmits30 = rows.filter((r) => r.event_type === "apply_submit" && in30d(r)).length;
 
   return (
-    <div>
-      <h1 className="mb-1 text-[22px] font-extrabold tracking-tight">대시보드 2</h1>
+    <div className="mt-9 border-t border-dashed border-gray-300 pt-8">
+      <h2 className="mb-1 text-[19px] font-extrabold tracking-tight">트래픽 · 퍼널</h2>
       <p className="mb-6 text-sm text-gray-500">
         방문자·조회수·클릭 퍼널 추이입니다. 방문자 수는 우리 IP를 제외한 값이며, 방문자 식별은{" "}
         {new Date().toLocaleDateString("ko-KR")}부터 수집된 데이터를 기준으로 합니다.

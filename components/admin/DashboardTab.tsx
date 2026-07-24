@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { JOB_CATEGORIES } from "@/lib/types";
+import DashboardTraffic from "@/components/admin/DashboardTab2";
 
 interface LeadRow {
   brand_ids: string[];
@@ -375,6 +376,8 @@ export default function DashboardTab() {
           별개)예요. 연령대·구직 상태 등은 여전히 수집하지 않아요.
         </p>
       </div>
+
+      <DashboardTraffic />
     </div>
   );
 }
