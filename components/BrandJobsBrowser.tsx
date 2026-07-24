@@ -36,19 +36,27 @@ export default function BrandJobsBrowser({
   jobs: Job[];
 }) {
   const [filter, setFilter] = useState<JobCategory | null>(null);
-  const [brandFilter, setBrandFilter] = useState<string>("");
+  const [brandQuery, setBrandQuery] = useState("");
   const brandById = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
   const interleaved = useMemo(() => interleaveByBrand(jobs), [jobs]);
 
-  const brandOptions = useMemo(() => {
-    const idsWithJobs = new Set(jobs.map((j) => j.brandId));
-    return brands
-      .filter((b) => idsWithJobs.has(b.id))
-      .sort((a, b) => a.name.localeCompare(b.name, "ko"));
-  }, [brands, jobs]);
+  const matchingBrandIds = useMemo(() => {
+    const term = brandQuery.trim().toLowerCase();
+    if (!term) return null;
+    const ids = new Set<string>();
+    for (const b of brands) {
+      const haystack = [b.name, ...(b.brandNames ?? [])];
+      if (haystack.some((n) => n.toLowerCase().includes(term))) {
+        ids.add(b.id);
+      }
+    }
+    return ids;
+  }, [brands, brandQuery]);
 
   const filtered = interleaved.filter(
-    (j) => (!filter || j.jobCategory === filter) && (!brandFilter || j.brandId === brandFilter)
+    (j) =>
+      (!filter || j.jobCategory === filter) &&
+      (!matchingBrandIds || matchingBrandIds.has(j.brandId))
   );
 
   return (
@@ -57,18 +65,15 @@ export default function BrandJobsBrowser({
         <h2 className="m-0 text-xl font-extrabold tracking-tight">
           지금 열린 공고 <span className="text-[color:var(--brand-pink)]">{filtered.length}</span>
         </h2>
-        <select
-          value={brandFilter}
-          onChange={(e) => setBrandFilter(e.target.value)}
-          className="rounded-full border border-gray-200 bg-white px-3.5 py-2 text-[13px] font-bold text-gray-700"
-        >
-          <option value="">전체 브랜드</option>
-          {brandOptions.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name}
-            </option>
-          ))}
-        </select>
+        <div className="relative">
+          <i className="ph-bold ph-magnifying-glass pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400" />
+          <input
+            value={brandQuery}
+            onChange={(e) => setBrandQuery(e.target.value)}
+            placeholder="브랜드 검색 (예: 올영, 메디큐브)"
+            className="w-[220px] rounded-full border border-gray-200 bg-white py-2 pl-9 pr-3.5 text-[13px] font-bold text-gray-700 placeholder:font-normal placeholder:text-gray-400"
+          />
+        </div>
       </div>
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1.5">
