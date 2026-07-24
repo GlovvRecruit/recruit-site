@@ -15,8 +15,9 @@ interface LeadRow {
 
 interface PageViewRow {
   path: string;
-  event_type: "view" | "deep_scroll";
+  event_type: "view" | "deep_scroll" | "page_duration" | string;
   brand_id: string | null;
+  duration_ms: number | null;
 }
 
 interface PathStat {
@@ -24,6 +25,14 @@ interface PathStat {
   views: number;
   deepScrolls: number;
   deepScrollPct: number;
+  avgDurationMs: number | null;
+}
+
+function formatDuration(ms: number): string {
+  const totalSec = Math.round(ms / 1000);
+  const min = Math.floor(totalSec / 60);
+  const sec = totalSec % 60;
+  return min > 0 ? `${min}분 ${sec}초` : `${sec}초`;
 }
 
 interface Counts {
@@ -67,7 +76,7 @@ export default function DashboardTab() {
           supabase.from("media_links").select("*", { count: "exact", head: true }),
           supabase.from("leads").select("brand_ids, categories, marketing_opt_in, unsubscribed, created_at"),
           supabase.from("brands").select("id, name"),
-          supabase.from("page_views").select("path, event_type, brand_id"),
+          supabase.from("page_views").select("path, event_type, brand_id, duration_ms"),
         ]);
       if (cancelled) return;
       setCounts({
@@ -144,11 +153,19 @@ export default function DashboardTab() {
       ])
     : [];
 
-  const pathStatsMap = new Map<string, { views: number; deepScrolls: number }>();
+  const pathStatsMap = new Map<
+    string,
+    { views: number; deepScrolls: number; durationSum: number; durationCount: number }
+  >();
   for (const pv of pageViews ?? []) {
-    const entry = pathStatsMap.get(pv.path) ?? { views: 0, deepScrolls: 0 };
+    const entry =
+      pathStatsMap.get(pv.path) ?? { views: 0, deepScrolls: 0, durationSum: 0, durationCount: 0 };
     if (pv.event_type === "view") entry.views += 1;
-    else entry.deepScrolls += 1;
+    else if (pv.event_type === "deep_scroll") entry.deepScrolls += 1;
+    else if (pv.event_type === "page_duration" && pv.duration_ms) {
+      entry.durationSum += pv.duration_ms;
+      entry.durationCount += 1;
+    }
     pathStatsMap.set(pv.path, entry);
   }
   const pathStats: PathStat[] = [...pathStatsMap.entries()]
@@ -157,9 +174,18 @@ export default function DashboardTab() {
       views: v.views,
       deepScrolls: v.deepScrolls,
       deepScrollPct: v.views > 0 ? Math.round((v.deepScrolls / v.views) * 100) : 0,
+      avgDurationMs: v.durationCount > 0 ? v.durationSum / v.durationCount : null,
     }))
     .sort((a, b) => b.views - a.views)
     .slice(0, 12);
+
+  const durationRows = (pageViews ?? []).filter(
+    (pv) => pv.event_type === "page_duration" && pv.duration_ms
+  );
+  const overallAvgDurationMs =
+    durationRows.length > 0
+      ? durationRows.reduce((sum, pv) => sum + (pv.duration_ms ?? 0), 0) / durationRows.length
+      : null;
 
   const brandViewCounts = new Map<string, number>();
   for (const pv of pageViews ?? []) {
@@ -324,9 +350,18 @@ export default function DashboardTab() {
       </div>
 
       <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-[22px]">
-        <h2 className="mb-1 text-[15px] font-extrabold">페이지별 조회수 · 딥스크롤</h2>
+        <div className="mb-1 flex items-baseline justify-between gap-3">
+          <h2 className="text-[15px] font-extrabold">페이지별 조회수 · 딥스크롤 · 체류시간</h2>
+          <div className="flex-none text-right">
+            <div className="text-[11px] font-bold text-gray-400">전체 평균 체류시간</div>
+            <div className="brand-gradient-text text-lg font-extrabold">
+              {overallAvgDurationMs != null ? formatDuration(overallAvgDurationMs) : "–"}
+            </div>
+          </div>
+        </div>
         <p className="mb-4 text-[12.5px] text-gray-400">
-          조회수 상위 12개 페이지 — 딥스크롤은 페이지의 75% 이상을 스크롤한 방문 비율이에요
+          조회수 상위 12개 페이지 — 딥스크롤은 페이지의 75% 이상을 스크롤한 방문 비율, 체류시간은
+          페이지를 떠날 때까지 머문 시간의 평균이에요
         </p>
         {!pageViews ? (
           <p className="text-xs text-gray-400">불러오는 중…</p>
@@ -334,13 +369,14 @@ export default function DashboardTab() {
           <p className="text-xs text-gray-400">아직 집계된 조회 데이터가 없습니다.</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[480px] border-collapse text-[13px]">
+            <table className="w-full min-w-[560px] border-collapse text-[13px]">
               <thead>
                 <tr className="border-b border-gray-100 text-left text-xs font-bold text-gray-400">
                   <th className="py-2 pr-3 font-bold">페이지</th>
                   <th className="py-2 pr-3 text-right font-bold">조회수</th>
                   <th className="py-2 pr-3 text-right font-bold">딥스크롤 횟수</th>
-                  <th className="py-2 text-right font-bold">딥스크롤 비율</th>
+                  <th className="py-2 pr-3 text-right font-bold">딥스크롤 비율</th>
+                  <th className="py-2 text-right font-bold">평균 체류시간</th>
                 </tr>
               </thead>
               <tbody>
@@ -351,7 +387,10 @@ export default function DashboardTab() {
                     </td>
                     <td className="py-2 pr-3 text-right font-bold text-gray-700">{s.views}</td>
                     <td className="py-2 pr-3 text-right text-gray-500">{s.deepScrolls}</td>
-                    <td className="py-2 text-right font-bold text-gray-700">{s.deepScrollPct}%</td>
+                    <td className="py-2 pr-3 text-right font-bold text-gray-700">{s.deepScrollPct}%</td>
+                    <td className="py-2 text-right font-bold text-gray-700">
+                      {s.avgDurationMs != null ? formatDuration(s.avgDurationMs) : "–"}
+                    </td>
                   </tr>
                 ))}
               </tbody>

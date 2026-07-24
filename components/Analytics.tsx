@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { track as trackEvent } from "@/lib/track";
+import { track as trackEvent, trackDuration } from "@/lib/track";
 
 declare global {
   interface Window {
@@ -29,6 +29,14 @@ export default function Analytics() {
     window.fbq?.("track", "PageView");
     deepScrollFiredRef.current = false;
 
+    const enteredAt = Date.now();
+    let durationSent = false;
+    function sendDuration() {
+      if (durationSent) return;
+      durationSent = true;
+      trackDuration(pathname, Date.now() - enteredAt, getCurrentBrandId());
+    }
+
     function handleScroll() {
       if (deepScrollFiredRef.current) return;
       const doc = document.documentElement;
@@ -41,8 +49,22 @@ export default function Analytics() {
       }
     }
 
+    // 탭 전환/최소화/닫기 — SPA 라우트 이동이 아닌 "완전한 이탈"을 잡아낸다.
+    function handleVisibilityChange() {
+      if (document.visibilityState === "hidden") sendDuration();
+    }
+
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("pagehide", sendDuration);
+
+    return () => {
+      // 같은 앱 안에서 다른 경로로 이동하는 경우 — 이 클린업이 "이전 페이지"의 체류시간을 보낸다.
+      sendDuration();
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("pagehide", sendDuration);
+    };
   }, [pathname]);
 
   return null;

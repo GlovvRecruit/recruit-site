@@ -29,3 +29,25 @@ export function track(path: string, eventType: TrackEventType, brandId?: string)
     keepalive: true,
   }).catch(() => {});
 }
+
+// 페이지 이탈(라우트 이동/탭 숨김/닫기) 시점에 호출된다. sendBeacon은 페이지가 언로드되는
+// 도중에도 요청을 안정적으로 흘려보내므로 이 용도에 fetch보다 적합하다.
+export function trackDuration(path: string, durationMs: number, brandId?: string) {
+  const payload = JSON.stringify({
+    path,
+    eventType: "page_duration",
+    brandId,
+    visitorId: getVisitorId(),
+    durationMs,
+  });
+  if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+    const blob = new Blob([payload], { type: "application/json" });
+    if (navigator.sendBeacon("/api/track", blob)) return;
+  }
+  fetch("/api/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: payload,
+    keepalive: true,
+  }).catch(() => {});
+}
