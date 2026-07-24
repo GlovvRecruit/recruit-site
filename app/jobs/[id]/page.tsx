@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import BrandThumb from "@/components/BrandThumb";
-import { getBrands, getJobs } from "@/lib/data";
+import { getBrands, getJobById, getJobsSummaryByBrand } from "@/lib/data";
 
 const SITE_URL = "https://beauty-recruit.vercel.app";
 
@@ -35,8 +35,8 @@ function buildJobDescription(
 
 export async function generateMetadata(props: PageProps<"/jobs/[id]">): Promise<Metadata> {
   const { id } = await props.params;
-  const [brands, jobs] = await Promise.all([getBrands(), getJobs()]);
-  const job = jobs.find((j) => j.id === id);
+  const job = await getJobById(id);
+  const brands = job ? await getBrands() : [];
   const brand = job && brands.find((b) => b.id === job.brandId);
   if (!job || !brand) return {};
   const description = buildJobDescription(job, brand.name).slice(0, 200);
@@ -50,15 +50,13 @@ export async function generateMetadata(props: PageProps<"/jobs/[id]">): Promise<
 
 export default async function JobDetailPage(props: PageProps<"/jobs/[id]">) {
   const { id } = await props.params;
-  const [brands, jobs] = await Promise.all([getBrands(), getJobs()]);
-
-  const job = jobs.find((j) => j.id === id);
+  const [job, brands] = await Promise.all([getJobById(id), getBrands()]);
   if (!job) notFound();
 
   const brand = brands.find((b) => b.id === job.brandId);
   if (!brand) notFound();
 
-  const brandOpenJobs = jobs.filter((j) => j.brandId === brand.id && j.id !== job.id);
+  const brandOpenJobs = await getJobsSummaryByBrand(brand.id, job.id);
 
   const jobPostingJsonLd = {
     "@context": "https://schema.org/",

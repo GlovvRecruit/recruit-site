@@ -1,10 +1,10 @@
 import type { MetadataRoute } from "next";
-import { getCareersJobs, getJobs } from "@/lib/data";
+import { getCareersJobs, getJobsSummary } from "@/lib/data";
 
 const BASE_URL = "https://beauty-recruit.vercel.app";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const [careersJobs, brandJobs] = await Promise.all([getCareersJobs(), getJobs()]);
+  const [careersJobs, brandJobs] = await Promise.all([getCareersJobs(), getJobsSummary()]);
   const now = new Date();
 
   const staticRoutes: MetadataRoute.Sitemap = [

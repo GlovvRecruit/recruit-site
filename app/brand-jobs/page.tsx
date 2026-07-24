@@ -3,7 +3,7 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import AlertCta from "@/components/AlertCta";
 import BrandJobsBrowser from "@/components/BrandJobsBrowser";
-import { getBrands, getJobs } from "@/lib/data";
+import { getBrands, getJobsSummary } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "메이저 뷰티 브랜드 채용 공고 | 뷰티 취업 정보",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 };
 
 export default async function BrandJobsPage() {
-  const [brands, jobs] = await Promise.all([getBrands(), getJobs()]);
+  const [brands, jobs] = await Promise.all([getBrands(), getJobsSummary()]);
 
   return (
     <div className="min-h-screen bg-gray-50">

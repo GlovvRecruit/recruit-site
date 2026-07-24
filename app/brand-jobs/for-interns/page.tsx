@@ -3,7 +3,7 @@ import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import JobCard from "@/components/JobCard";
-import { getBrands, getJobs } from "@/lib/data";
+import { getBrands, getJobsSummary } from "@/lib/data";
 
 export const metadata: Metadata = {
   title: "인턴 종료 후 지원하기 좋은 공고",
@@ -18,7 +18,7 @@ function isEntryFriendly(careerLevel: string): boolean {
 }
 
 export default async function ForInternsPage() {
-  const [brands, jobs] = await Promise.all([getBrands(), getJobs()]);
+  const [brands, jobs] = await Promise.all([getBrands(), getJobsSummary()]);
   const brandById = new Map(brands.map((b) => [b.id, b]));
 
   const entryJobs = jobs.filter(

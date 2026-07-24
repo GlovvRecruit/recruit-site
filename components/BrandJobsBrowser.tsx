@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import JobCard from "@/components/JobCard";
 import { JOB_CATEGORIES, type Brand, type Job, type JobCategory } from "@/lib/types";
 
@@ -28,6 +28,8 @@ function interleaveByBrand(jobs: Job[]): Job[] {
   return result;
 }
 
+const PAGE_SIZE = 24;
+
 export default function BrandJobsBrowser({
   brands,
   jobs,
@@ -37,6 +39,7 @@ export default function BrandJobsBrowser({
 }) {
   const [filter, setFilter] = useState<JobCategory | null>(null);
   const [brandQuery, setBrandQuery] = useState("");
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const brandById = useMemo(() => new Map(brands.map((b) => [b.id, b])), [brands]);
   const interleaved = useMemo(() => interleaveByBrand(jobs), [jobs]);
 
@@ -58,6 +61,11 @@ export default function BrandJobsBrowser({
       (!filter || j.jobCategory === filter) &&
       (!matchingBrandIds || matchingBrandIds.has(j.brandId))
   );
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filter, brandQuery]);
+  const visible = filtered.slice(0, visibleCount);
 
   return (
     <>
@@ -107,12 +115,24 @@ export default function BrandJobsBrowser({
       </div>
 
       <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-[18px]">
-        {filtered.map((job) => {
+        {visible.map((job) => {
           const brand = brandById.get(job.brandId);
           if (!brand) return null;
           return <JobCard key={job.id} job={job} brand={brand} />;
         })}
       </div>
+
+      {visibleCount < filtered.length && (
+        <div className="mt-6 flex justify-center">
+          <button
+            type="button"
+            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+            className="rounded-full border border-gray-200 bg-white px-5 py-2.5 text-[13px] font-bold text-gray-700"
+          >
+            공고 더 보기 ({filtered.length - visibleCount}개 남음)
+          </button>
+        </div>
+      )}
     </>
   );
 }
