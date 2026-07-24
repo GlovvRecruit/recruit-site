@@ -3,6 +3,9 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import { getMediaLinks } from "@/lib/data";
 
+// media_links는 자주 안 바뀌는 공개 콘텐츠라 ISR로 캐시하고 5분마다 백그라운드 재검증한다.
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: "미디어",
   description: "앤마들린의 언론 보도와 오프라인 행사 소식을 모았습니다.",

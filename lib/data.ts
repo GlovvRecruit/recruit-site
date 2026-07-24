@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createPublicClient } from "@/lib/supabase/public";
 import { sampleBrands, sampleJobs } from "@/data/sample-jobs";
 import { sampleCareersJobs, sampleMediaLinks, sampleInsightLinks } from "@/data/sample-content";
 import type { Brand, CareersJob, Job, MediaLink, InsightLink } from "@/lib/types";
@@ -197,7 +198,7 @@ export async function getCareersJobs(): Promise<CareersJob[]> {
 export async function getMediaLinks(): Promise<MediaLink[]> {
   if (!hasSupabaseEnv) return sampleMediaLinks;
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from("media_links")
       .select("*")
@@ -218,7 +219,7 @@ export async function getMediaLinks(): Promise<MediaLink[]> {
 export async function getInsightLinks(): Promise<InsightLink[]> {
   if (!hasSupabaseEnv) return sampleInsightLinks;
   try {
-    const supabase = await createClient();
+    const supabase = createPublicClient();
     const { data, error } = await supabase
       .from("insight_links")
       .select("*")

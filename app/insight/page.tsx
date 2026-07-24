@@ -3,6 +3,9 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import { getInsightLinks } from "@/lib/data";
 
+// insight_links는 자주 안 바뀌는 공개 콘텐츠라 ISR로 캐시하고 5분마다 백그라운드 재검증한다.
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title: "인사이트",
   description: "앤마들린이 축적하고 있는 퍼포먼스·콘텐츠 마케팅 인사이트를 모았습니다.",
