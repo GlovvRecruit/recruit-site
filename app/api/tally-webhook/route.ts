@@ -87,5 +87,13 @@ export async function POST(request: Request) {
     return Response.json({ error: error.message }, { status: 500 });
   }
 
+  // 최초 제출일 때만 지원 완료 퍼널 이벤트를 기록한다(재시도로 인한 중복 카운트 방지).
+  if (!error) {
+    await supabase.from("page_views").insert({
+      path: "/careers",
+      event_type: "apply_submit",
+    });
+  }
+
   return Response.json({ ok: true });
 }

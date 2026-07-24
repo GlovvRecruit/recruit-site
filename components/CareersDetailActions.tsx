@@ -1,11 +1,14 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import CareersApplyModal from "@/components/CareersApplyModal";
 import { ensureKakaoInit } from "@/lib/kakao";
+import { track } from "@/lib/track";
 
 export default function CareersDetailActions({ jobTitle }: { jobTitle: string }) {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   function shareKakao() {
     const kakao = ensureKakaoInit();
@@ -47,7 +50,10 @@ export default function CareersDetailActions({ jobTitle }: { jobTitle: string })
           </button>
           <button
             type="button"
-            onClick={() => setOpen(true)}
+            onClick={() => {
+              track(pathname, "apply_click");
+              setOpen(true);
+            }}
             className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-extrabold text-white shadow-[0_8px_22px_rgba(250,60,100,0.3)]"
             style={{ background: "var(--brand-gradient)" }}
           >

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import UnsubscribeModal from "@/components/UnsubscribeModal";
+import { track } from "@/lib/track";
 
 export default function AlertCta() {
   const [unsubOpen, setUnsubOpen] = useState(false);
@@ -12,6 +13,7 @@ export default function AlertCta() {
       <section className="card-shadow mb-9 rounded-2xl border border-gray-200 bg-white p-6">
         <Link
           href="/onboarding"
+          onClick={() => track("/brand-jobs", "alert_cta_click")}
           className="mx-auto flex max-w-[360px] items-center justify-center gap-2 rounded-xl px-4 py-4 text-[15px] font-extrabold no-underline"
           style={{ background: "var(--kakao-yellow)", color: "var(--kakao-brown)" }}
         >

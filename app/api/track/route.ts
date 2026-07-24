@@ -1,9 +1,18 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 
+const VALID_EVENT_TYPES = [
+  "view",
+  "deep_scroll",
+  "alert_cta_click",
+  "onboarding_submit",
+  "apply_click",
+];
+
 interface TrackPayload {
   path?: string;
   eventType?: string;
   brandId?: string;
+  visitorId?: string;
 }
 
 function getClientIp(request: Request): string | null {
@@ -29,11 +38,11 @@ export async function POST(request: Request) {
     return Response.json({ error: "invalid json" }, { status: 400 });
   }
 
-  const { path, eventType, brandId } = payload;
+  const { path, eventType, brandId, visitorId } = payload;
   if (typeof path !== "string" || !path) {
     return Response.json({ error: "missing path" }, { status: 400 });
   }
-  if (eventType !== "view" && eventType !== "deep_scroll") {
+  if (typeof eventType !== "string" || !VALID_EVENT_TYPES.includes(eventType)) {
     return Response.json({ error: "invalid eventType" }, { status: 400 });
   }
 
@@ -50,6 +59,7 @@ export async function POST(request: Request) {
     path,
     event_type: eventType,
     brand_id: brandId ?? null,
+    visitor_id: visitorId ?? null,
   });
 
   if (error) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import JobCard from "@/components/JobCard";
 import { JOB_CATEGORIES, type Brand, type Job, type JobCategory } from "@/lib/types";
 
@@ -67,6 +67,22 @@ export default function BrandJobsBrowser({
   }, [filter, brandQuery]);
   const visible = filtered.slice(0, visibleCount);
 
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => c + PAGE_SIZE);
+        }
+      },
+      { rootMargin: "600px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [filtered.length]);
+
   return (
     <>
       <div className="mb-3.5 flex flex-wrap items-baseline justify-between gap-3">
@@ -123,14 +139,8 @@ export default function BrandJobsBrowser({
       </div>
 
       {visibleCount < filtered.length && (
-        <div className="mt-6 flex justify-center">
-          <button
-            type="button"
-            onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
-            className="rounded-full border border-gray-200 bg-white px-5 py-2.5 text-[13px] font-bold text-gray-700"
-          >
-            공고 더 보기 ({filtered.length - visibleCount}개 남음)
-          </button>
+        <div ref={sentinelRef} className="mt-6 flex justify-center py-4 text-[13px] text-gray-400">
+          불러오는 중...
         </div>
       )}
     </>

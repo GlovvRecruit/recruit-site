@@ -7,6 +7,7 @@ import Footer from "@/components/Footer";
 import { sampleBrands } from "@/data/sample-jobs";
 import { JOB_CATEGORIES, type Brand, type JobCategory } from "@/lib/types";
 import { createClient } from "@/lib/supabase/client";
+import { track } from "@/lib/track";
 
 const STEPS = [1, 2] as const;
 
@@ -120,6 +121,7 @@ export default function OnboardingPage() {
       return;
     }
 
+    track("/onboarding", "onboarding_submit");
     setSubmitting(true);
     try {
       const supabase = supabaseRef.current;

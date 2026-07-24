@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { track as trackEvent } from "@/lib/track";
 
 declare global {
   interface Window {
@@ -16,12 +17,7 @@ function getCurrentBrandId(): string | undefined {
 }
 
 function track(path: string, eventType: "view" | "deep_scroll") {
-  fetch("/api/track", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path, eventType, brandId: getCurrentBrandId() }),
-    keepalive: true,
-  }).catch(() => {});
+  trackEvent(path, eventType, getCurrentBrandId());
 }
 
 export default function Analytics() {
