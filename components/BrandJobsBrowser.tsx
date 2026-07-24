@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import JobCard from "@/components/JobCard";
 import { JOB_CATEGORIES, type Brand, type Job, type JobCategory } from "@/lib/types";
 
@@ -67,21 +67,26 @@ export default function BrandJobsBrowser({
   }, [filter, brandQuery]);
   const visible = filtered.slice(0, visibleCount);
 
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  // 관찰 대상 요소는 필터가 바뀔 때마다 조건부로 마운트/언마운트되므로, observer 인스턴스는
+  // 컴포넌트 생애주기 동안 하나만 만들어두고 콜백 ref로 "현재 마운트된" sentinel을 그때그때
+  // observe한다. observer를 특정 DOM 노드에 의존하는 effect로 재생성하면, 필터가 바뀌지 않는
+  // 상태에서 sentinel이 언마운트/재마운트될 때 새 노드를 놓쳐 무한 스크롤이 멈추는 문제가 있었다.
+  const observerRef = useRef<IntersectionObserver | null>(null);
   useEffect(() => {
-    const el = sentinelRef.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
+    observerRef.current = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (entries.some((entry) => entry.isIntersecting)) {
           setVisibleCount((c) => c + PAGE_SIZE);
         }
       },
-      { rootMargin: "600px" }
+      { rootMargin: "800px" }
     );
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, [filtered.length]);
+    return () => observerRef.current?.disconnect();
+  }, []);
+
+  const sentinelCallbackRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) observerRef.current?.observe(node);
+  }, []);
 
   return (
     <>
@@ -139,7 +144,10 @@ export default function BrandJobsBrowser({
       </div>
 
       {visibleCount < filtered.length && (
-        <div ref={sentinelRef} className="mt-6 flex justify-center py-4 text-[13px] text-gray-400">
+        <div
+          ref={sentinelCallbackRef}
+          className="mt-6 flex justify-center py-4 text-[13px] text-gray-400"
+        >
           불러오는 중...
         </div>
       )}
