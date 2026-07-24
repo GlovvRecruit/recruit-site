@@ -71,7 +71,7 @@ export default function BrandJobsBrowser({
             value={brandQuery}
             onChange={(e) => setBrandQuery(e.target.value)}
             placeholder="브랜드 검색 (예: 올영, 메디큐브)"
-            className="w-[220px] rounded-full border border-gray-200 bg-white py-2 pl-9 pr-3.5 text-[13px] font-bold text-gray-700 placeholder:font-normal placeholder:text-gray-400"
+            className="w-[330px] rounded-full border border-gray-200 bg-white py-2 pl-9 pr-3.5 text-[13px] font-bold text-gray-700 placeholder:font-normal placeholder:text-gray-400"
           />
         </div>
       </div>
