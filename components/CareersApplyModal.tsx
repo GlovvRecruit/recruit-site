@@ -1,5 +1,11 @@
 "use client";
 
+import { useMemo } from "react";
+import { appendAttributionToUrl } from "@/lib/adAttribution";
+
+const TALLY_EMBED_URL =
+  "https://tally.so/embed/RGzKbK?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1";
+
 export default function CareersApplyModal({
   jobTitle,
   onClose,
@@ -7,6 +13,8 @@ export default function CareersApplyModal({
   jobTitle: string;
   onClose: () => void;
 }) {
+  const iframeSrc = useMemo(() => appendAttributionToUrl(TALLY_EMBED_URL), []);
+
   function shareKakao() {
     if (navigator.share) {
       navigator.share({ title: `앤마들린 채용 · ${jobTitle}`, url: location.href }).catch(() => {});
@@ -46,7 +54,7 @@ export default function CareersApplyModal({
           </button>
         </div>
         <iframe
-          src="https://tally.so/embed/RGzKbK?alignLeft=1&hideTitle=1&transparentBackground=1&dynamicHeight=1"
+          src={iframeSrc}
           className="w-full flex-1 border-0"
           title="지원 폼"
           loading="lazy"

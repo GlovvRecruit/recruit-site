@@ -3,6 +3,7 @@
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { track as trackEvent, trackDuration } from "@/lib/track";
+import { captureAdAttribution } from "@/lib/adAttribution";
 
 declare global {
   interface Window {
@@ -25,6 +26,7 @@ export default function Analytics() {
   const deepScrollFiredRef = useRef(false);
 
   useEffect(() => {
+    captureAdAttribution();
     track(pathname, "view");
     window.fbq?.("track", "PageView");
     deepScrollFiredRef.current = false;
