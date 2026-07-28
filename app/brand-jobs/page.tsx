@@ -5,11 +5,15 @@ import AlertCta from "@/components/AlertCta";
 import BrandJobsBrowser from "@/components/BrandJobsBrowser";
 import { getBrands, getJobsSummary } from "@/lib/data";
 
+const PAGE_TITLE = "앤마들린 채용 | 메이저 뷰티 채용공고 모음 | 신규 채용 공고 카톡 알림";
+const PAGE_DESCRIPTION =
+  "뷰티 채용 공고 모음은 앤마들린 채용. 아모레퍼시픽·CJ올리브영 등 메이저 뷰티 공고 확인하기부터, 관심 기업·직무의 신규 채용 공고를 매주 카톡으로 받아보기까지 한 번에 가능해요.";
+
 export const metadata: Metadata = {
-  title: "메이저 뷰티 브랜드 채용 공고 | 뷰티 취업 정보",
-  description:
-    "메이저 뷰티 브랜드의 채용·취업 공고를 한 곳에서 확인하세요. 관심 브랜드·직무를 등록하면 신규 뷰티 채용 공고를 매주 카톡으로 받아볼 수 있어요.",
+  title: { absolute: PAGE_TITLE },
+  description: PAGE_DESCRIPTION,
   alternates: { canonical: "/brand-jobs" },
+  openGraph: { title: PAGE_TITLE, description: PAGE_DESCRIPTION },
 };
 
 export default async function BrandJobsPage() {
