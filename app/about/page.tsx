@@ -55,7 +55,7 @@ export default function AboutPage() {
           <p className="m-0 text-xs font-extrabold tracking-[0.2em] text-[color:var(--brand-pink)]">
             ABOUT US
           </p>
-          <h1 className="mb-4 mt-3.5 max-w-[720px] text-[44px] font-extrabold leading-[1.18] tracking-tight">
+          <h1 className="mb-4 mt-3.5 max-w-[720px] break-keep text-[44px] font-extrabold leading-[1.18] tracking-tight">
             대부분의 뷰티 브랜드가{" "}
             <br className="sm:hidden" />
             이용하는{" "}
