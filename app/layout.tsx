@@ -5,6 +5,7 @@ import Analytics from "@/components/Analytics";
 import "./globals.css";
 
 const META_PIXEL_ID = "881944777433930";
+const GOOGLE_ADS_ID = "AW-18354520942";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -87,6 +88,16 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-gtag" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GOOGLE_ADS_ID}');`}
+        </Script>
         <link
           rel="stylesheet"
           href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"
