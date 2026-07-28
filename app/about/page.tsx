@@ -56,11 +56,15 @@ export default function AboutPage() {
             ABOUT US
           </p>
           <h1 className="mb-4 mt-3.5 max-w-[720px] text-[44px] font-extrabold leading-[1.18] tracking-tight">
-            대부분의 뷰티 브랜드가 이용하는{" "}
+            대부분의 뷰티 브랜드가{" "}
+            <br className="sm:hidden" />
+            이용하는{" "}
             <br className="sm:hidden" />
             <span className="whitespace-nowrap">글로브/플릭스에서</span>
             <br />
-            <span className="brand-gradient-text">함께 성장할 사람</span>을 찾습니다
+            <span className="brand-gradient-text">함께 성장할 사람</span>을{" "}
+            <br className="sm:hidden" />
+            찾습니다
           </h1>
           <p className="mb-7 max-w-[620px] text-base leading-relaxed text-gray-500">
             대부분의 올리브영 입점 브랜드가 사용하는 1등 뷰티 릴스 제작 플랫폼 글로브,
