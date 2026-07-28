@@ -57,6 +57,29 @@ function toBars(rows: { label: string; value: number }[]): Bar[] {
   }));
 }
 
+// PostgREST는 명시적 order/range가 없으면 기본 1000행 제한이 걸리고, 그 1000행이 최신순이라는
+// 보장도 없다. page_views가 1000행을 넘어가면서 최근 데이터가 잘려나가던 문제라 페이지네이션으로
+// 전부 받아온다.
+async function fetchAllPageViews(
+  supabase: ReturnType<typeof createClient>
+): Promise<PageViewRow[]> {
+  const PAGE_SIZE = 1000;
+  const all: PageViewRow[] = [];
+  let from = 0;
+  while (true) {
+    const { data, error } = await supabase
+      .from("page_views")
+      .select("path, event_type, brand_id, duration_ms")
+      .order("created_at", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+    if (error || !data) break;
+    all.push(...(data as PageViewRow[]));
+    if (data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+  return all;
+}
+
 export default function DashboardTab() {
   const [counts, setCounts] = useState<Counts | null>(null);
   const [leads, setLeads] = useState<LeadRow[] | null>(null);
@@ -68,7 +91,7 @@ export default function DashboardTab() {
     let cancelled = false;
     async function load() {
       const supabase = createClient();
-      const [brands, openJobs, applications, mediaLinks, leadsRes, brandRows, pageViewsRes] =
+      const [brands, openJobs, applications, mediaLinks, leadsRes, brandRows, allPageViews] =
         await Promise.all([
           supabase.from("brands").select("*", { count: "exact", head: true }),
           supabase.from("jobs").select("*", { count: "exact", head: true }).eq("status", "open"),
@@ -76,7 +99,7 @@ export default function DashboardTab() {
           supabase.from("media_links").select("*", { count: "exact", head: true }),
           supabase.from("leads").select("brand_ids, categories, marketing_opt_in, unsubscribed, created_at"),
           supabase.from("brands").select("id, name"),
-          supabase.from("page_views").select("path, event_type, brand_id, duration_ms"),
+          fetchAllPageViews(supabase),
         ]);
       if (cancelled) return;
       setCounts({
@@ -93,7 +116,7 @@ export default function DashboardTab() {
           .length
       );
       setBrandNameById(new Map((brandRows.data ?? []).map((b) => [b.id, b.name])));
-      setPageViews((pageViewsRes.data as PageViewRow[]) ?? []);
+      setPageViews(allPageViews);
     }
     load();
     return () => {

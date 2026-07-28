@@ -183,11 +183,26 @@ export default function DashboardTab2() {
       const supabase = createClient();
       const since = new Date();
       since.setMonth(since.getMonth() - 12);
-      const { data } = await supabase
-        .from("page_views")
-        .select("path, event_type, visitor_id, created_at")
-        .gte("created_at", since.toISOString());
-      if (!cancelled) setRows((data as PageViewRow[]) ?? []);
+
+      // PostgREST는 명시적으로 order/range를 안 주면 기본 1000행 제한이 걸리고, 그 1000행이
+      // 최신순이라는 보장도 없다. 트래픽이 늘면서 실제로 최근 며칠치 데이터가 잘려나가
+      // "어제 접속자 1명" 같은 값이 나온 원인이었다 — 페이지네이션으로 전부 받아온다.
+      const PAGE_SIZE = 1000;
+      const all: PageViewRow[] = [];
+      let from = 0;
+      while (true) {
+        const { data, error } = await supabase
+          .from("page_views")
+          .select("path, event_type, visitor_id, created_at")
+          .gte("created_at", since.toISOString())
+          .order("created_at", { ascending: true })
+          .range(from, from + PAGE_SIZE - 1);
+        if (error || !data) break;
+        all.push(...(data as PageViewRow[]));
+        if (data.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+      if (!cancelled) setRows(all);
     }
     load();
     return () => {
