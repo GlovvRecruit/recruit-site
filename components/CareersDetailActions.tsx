@@ -57,7 +57,7 @@ export default function CareersDetailActions({ jobTitle }: { jobTitle: string })
             className="flex flex-1 items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-extrabold text-white shadow-[0_8px_22px_rgba(250,60,100,0.3)]"
             style={{ background: "var(--brand-gradient)" }}
           >
-            이력서 없이 3분 이내 지원하기 <i className="ph-bold ph-arrow-right" />
+            이력서 없이도 3분 이내 지원하기 <i className="ph-bold ph-arrow-right" />
           </button>
         </div>
       </div>
