@@ -32,6 +32,13 @@ export function captureAdAttribution(): void {
     const value = params.get(key);
     if (value) current[key] = value;
   }
+  // 구글 광고는 계정 설정상 자동 태그(gclid)만 붙고 utm_source는 안 붙는 경우가 많아서,
+  // Tally가 이를 "자연 유입"으로 잘못 분류한다. gclid가 있는데 utm_source가 없으면
+  // 구글 광고로 보정해서 넘긴다. Meta는 utm_source가 이미 붙어 오므로 그대로 둔다.
+  if (current.gclid && !current.utm_source) {
+    current.utm_source = "google";
+    current.utm_medium = current.utm_medium || "cpc";
+  }
   if (Object.keys(current).length === 0) return;
 
   try {
