@@ -110,9 +110,15 @@ export default function DashboardTab() {
       });
       const leadRows = (leadsRes.data as LeadRow[]) ?? [];
       setLeads(leadRows);
-      const oneWeekAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      // 최근 7일 롤링 기준이면 "저번 주"에 가입한 사람도 아직 이번 주로 잡힌다 —
+      // 이번 주 월요일 00:00(로컬 기준) 이후 가입만 센다.
+      const weekStart = new Date();
+      weekStart.setHours(0, 0, 0, 0);
+      const dayOfWeek = weekStart.getDay(); // 0=일 1=월 ... 6=토
+      const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+      weekStart.setDate(weekStart.getDate() - daysSinceMonday);
       setNewThisWeek(
-        leadRows.filter((l) => !l.unsubscribed && new Date(l.created_at).getTime() >= oneWeekAgo)
+        leadRows.filter((l) => !l.unsubscribed && new Date(l.created_at).getTime() >= weekStart.getTime())
           .length
       );
       setBrandNameById(new Map((brandRows.data ?? []).map((b) => [b.id, b.name])));
