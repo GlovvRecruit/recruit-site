@@ -16,11 +16,11 @@ const AI_USER_AGENTS = [
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: [
-      { userAgent: "*", allow: "/", disallow: ["/admin", "/api/"] },
+      { userAgent: "*", allow: "/", disallow: ["/admin", "/api/", "/onboarding-test"] },
       ...AI_USER_AGENTS.map((userAgent) => ({
         userAgent,
         allow: "/",
-        disallow: ["/admin", "/api/"],
+        disallow: ["/admin", "/api/", "/onboarding-test"],
       })),
     ],
     sitemap: "https://beauty-recruit.vercel.app/sitemap.xml",
