@@ -175,7 +175,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
 
   return (
     <>
-      <div className="mx-auto w-full max-w-[480px]">
+      <div className="mx-auto mb-9 w-full max-w-[480px]">
         {flow === "card" && (
           <section className="card-shadow rounded-2xl border border-gray-200 bg-white p-6">
             {subscription ? (
@@ -554,7 +554,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
       </div>
 
       {subscription && (
-        <div className="mt-9 mb-3.5 flex gap-2">
+        <div className="mb-3.5 flex gap-2">
           <button
             type="button"
             onClick={() => setJobFilter("all")}
