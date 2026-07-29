@@ -51,6 +51,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
   const [brandQuery, setBrandQuery] = useState("");
   const [brandIds, setBrandIds] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Set<JobCategory>>(new Set());
+  const [moreCompanyRequest, setMoreCompanyRequest] = useState("");
 
   const [phone, setPhone] = useState("");
   const [marketingConsent, setMarketingConsent] = useState(false);
@@ -220,8 +221,9 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
                   매주 카톡으로
                 </h1>
                 <p className="mb-4 text-[13.5px] leading-relaxed text-gray-500">
-                  브랜드와 직무를 고르면 새 공고가 열릴 때만 알려드려요. 매주 월, 목 오전 9시 ·
-                  언제든 해지 가능
+                  브랜드와 직무를 고르면 새 공고가 열릴 때만 알려드려요.
+                  <br />
+                  매주 월, 목 오전 9시 · 언제든 해지 가능
                 </p>
 
                 <div className="mb-5 grid gap-2.5 rounded-2xl bg-gray-50 p-4">
@@ -389,6 +391,18 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
                   );
                 })
               )}
+            </div>
+
+            <div className="mt-5">
+              <span className="mb-2 block text-sm font-extrabold text-gray-700">
+                더 많은 회사의 알림을 받아보고 싶으신가요?
+              </span>
+              <input
+                value={moreCompanyRequest}
+                onChange={(e) => setMoreCompanyRequest(e.target.value)}
+                placeholder="회사명을 입력해 주세요"
+                className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-[15px] focus:border-[color:var(--brand-pink)] focus:shadow-[0_0_0_3px_rgba(255,0,153,0.1)] focus:outline-none"
+              />
             </div>
 
             <h2 className="mb-2.5 mt-7 text-sm font-extrabold text-gray-700">관심 직무</h2>
