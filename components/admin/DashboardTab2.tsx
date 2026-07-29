@@ -31,6 +31,15 @@ function monthKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 }
 
+// 그 날짜가 속한 주의 월요일 날짜를 키로 쓴다(월요일 시작 주간 집계).
+function weekKey(d: Date): string {
+  const monday = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const dayOfWeek = monday.getDay();
+  const daysSinceMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+  monday.setDate(monday.getDate() - daysSinceMonday);
+  return dateKey(monday);
+}
+
 function lastNDays(n: number): string[] {
   const days: string[] = [];
   const now = new Date();
@@ -38,6 +47,16 @@ function lastNDays(n: number): string[] {
     days.push(dateKey(new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)));
   }
   return days;
+}
+
+function lastNWeeks(n: number): string[] {
+  const thisWeek = weekKey(new Date());
+  const [y, m, d] = thisWeek.split("-").map(Number);
+  const weeks: string[] = [];
+  for (let i = n - 1; i >= 0; i--) {
+    weeks.push(dateKey(new Date(y, m - 1, d - i * 7)));
+  }
+  return weeks;
 }
 
 function lastNMonths(n: number): string[] {
@@ -52,6 +71,11 @@ function lastNMonths(n: number): string[] {
 function shortDayLabel(key: string): string {
   const [, m, d] = key.split("-");
   return `${m}/${d}`;
+}
+
+function shortWeekLabel(key: string): string {
+  const [, m, d] = key.split("-");
+  return `${m}/${d}주`;
 }
 
 function shortMonthLabel(key: string): string {
@@ -174,8 +198,19 @@ function FunnelCard({
   );
 }
 
+interface CareersJobOption {
+  id: string;
+  title: string;
+}
+
+// 아직 실제 admin 화면에서 선택하기 전 기본으로 보여줄 자사 채용 공고. 목록에 없으면(삭제 등)
+// 첫 번째 공고로 자동 대체된다.
+const DEFAULT_CAREERS_JOB_ID = "f4e83a80-c8dd-4d3a-b606-f7adc0873833";
+
 export default function DashboardTab2() {
   const [rows, setRows] = useState<PageViewRow[] | null>(null);
+  const [careersJobs, setCareersJobs] = useState<CareersJobOption[]>([]);
+  const [selectedCareersId, setSelectedCareersId] = useState<string>(DEFAULT_CAREERS_JOB_ID);
 
   useEffect(() => {
     let cancelled = false;
@@ -183,6 +218,18 @@ export default function DashboardTab2() {
       const supabase = createClient();
       const since = new Date();
       since.setMonth(since.getMonth() - 12);
+
+      const { data: careersJobRows } = await supabase
+        .from("careers_jobs")
+        .select("id, title")
+        .order("created_at", { ascending: false });
+      if (!cancelled) {
+        const options = (careersJobRows as CareersJobOption[] | null) ?? [];
+        setCareersJobs(options);
+        setSelectedCareersId((prev) =>
+          options.some((o) => o.id === prev) ? prev : (options[0]?.id ?? "")
+        );
+      }
 
       // PostgREST는 명시적으로 order/range를 안 주면 기본 1000행 제한이 걸리고, 그 1000행이
       // 최신순이라는 보장도 없다. 트래픽이 늘면서 실제로 최근 며칠치 데이터가 잘려나가
@@ -212,6 +259,7 @@ export default function DashboardTab2() {
 
   const days30 = useMemo(() => lastNDays(30), []);
   const days7 = useMemo(() => lastNDays(7), []);
+  const weeks12 = useMemo(() => lastNWeeks(12), []);
   const months12 = useMemo(() => lastNMonths(12), []);
   const todayKey = useMemo(() => dateKey(new Date()), []);
 
@@ -264,6 +312,30 @@ export default function DashboardTab2() {
     days30,
     (d) => dateKey(d),
     shortDayLabel,
+    false
+  );
+
+  const selectedCareersPath = selectedCareersId ? `/careers/${selectedCareersId}` : "";
+  const selectedCareersRows = viewRows.filter((r) => r.path === selectedCareersPath);
+  const careersJobDailyTrend = bucketCounts(
+    selectedCareersRows,
+    days30,
+    (d) => dateKey(d),
+    shortDayLabel,
+    false
+  );
+  const careersJobWeeklyTrend = bucketCounts(
+    selectedCareersRows,
+    weeks12,
+    (d) => weekKey(d),
+    shortWeekLabel,
+    false
+  );
+  const careersJobMonthlyTrend = bucketCounts(
+    selectedCareersRows,
+    months12,
+    (d) => monthKey(d),
+    shortMonthLabel,
     false
   );
 
@@ -326,6 +398,34 @@ export default function DashboardTab2() {
         <TrendCard title="자사 채용" data={careersViewTrend} />
         <TrendCard title="채용 공고 상세(브랜드/자사)" data={detailViewTrend} />
       </div>
+
+      <div className="mb-2.5 flex flex-wrap items-baseline justify-between gap-3">
+        <h2 className="text-base font-extrabold tracking-tight">
+          앤마들린 채용 공고 페이지 조회수 변화
+        </h2>
+        {careersJobs.length > 0 && (
+          <select
+            value={selectedCareersId}
+            onChange={(e) => setSelectedCareersId(e.target.value)}
+            className="rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-[13px] font-semibold text-gray-700"
+          >
+            {careersJobs.map((job) => (
+              <option key={job.id} value={job.id}>
+                {job.title}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+      {careersJobs.length === 0 ? (
+        <p className="mb-8 text-sm text-gray-400">아직 등록된 자사 채용 공고가 없습니다.</p>
+      ) : (
+        <div className="mb-8 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
+          <TrendCard title="일간 (최근 30일)" data={careersJobDailyTrend} color="#00b894" />
+          <TrendCard title="주간 (최근 12주)" data={careersJobWeeklyTrend} color="#00b894" />
+          <TrendCard title="월간 (최근 12개월)" data={careersJobMonthlyTrend} color="#00b894" />
+        </div>
+      )}
 
       <h2 className="mb-2.5 text-base font-extrabold tracking-tight">클릭 수 변화 (최근 30일)</h2>
       <div className="mb-8 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
