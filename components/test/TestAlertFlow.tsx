@@ -20,6 +20,13 @@ function resolvePopularBrands(brands: Brand[]): { label: string; brand: Brand | 
   });
 }
 
+// 브랜드 카드 하단에 보여줄 산하 브랜드명 — 너무 많거나 길면 잘라서 "..."으로 표시한다.
+function brandNamesSubtitle(names: string[]): string | null {
+  if (names.length === 0) return null;
+  const full = names.join("·");
+  return full.length > 14 ? `${full.slice(0, 12)}...` : full;
+}
+
 const STORAGE_KEY = "test_onboarding_subscribed";
 
 interface StoredSubscription {
@@ -82,6 +89,21 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
+      return next;
+    });
+  }
+
+  const allFilteredSelected =
+    filteredBrands.length > 0 && filteredBrands.every((b) => brandIds.has(b.id));
+
+  function toggleSelectAllFiltered() {
+    setBrandIds((prev) => {
+      const next = new Set(prev);
+      if (allFilteredSelected) {
+        filteredBrands.forEach((b) => next.delete(b.id));
+      } else {
+        filteredBrands.forEach((b) => next.add(b.id));
+      }
       return next;
     });
   }
@@ -378,6 +400,18 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
               </div>
             )}
 
+            <div className="mb-2.5 flex items-center justify-between">
+              <h2 className="text-sm font-extrabold text-gray-700">관심 기업</h2>
+              <button
+                type="button"
+                onClick={toggleSelectAllFiltered}
+                disabled={filteredBrands.length === 0}
+                className="rounded-full border border-gray-200 bg-white px-3.5 py-1.5 text-[12.5px] font-bold text-gray-600 disabled:opacity-40"
+              >
+                {allFilteredSelected ? "전체 해제" : "전체 선택"}
+              </button>
+            </div>
+
             <div className="grid max-h-[280px] grid-cols-3 gap-2.5 overflow-y-auto">
               {filteredBrands.length === 0 ? (
                 <p className="col-span-3 py-6 text-center text-[13px] text-gray-400">
@@ -386,19 +420,29 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
               ) : (
                 filteredBrands.map((brand) => {
                   const active = brandIds.has(brand.id);
+                  const subtitle = brandNamesSubtitle(brand.brandNames ?? []);
                   return (
                     <button
                       key={brand.id}
                       type="button"
                       onClick={() => toggleBrand(brand.id)}
                       className={
-                        "flex min-h-16 items-center justify-center rounded-2xl border-[1.5px] bg-white px-2 py-3 text-center text-[13px] font-bold leading-tight transition-shadow " +
+                        "flex min-h-16 flex-col items-center justify-center gap-0.5 rounded-2xl border-[1.5px] bg-white px-2 py-3 text-center leading-tight transition-shadow " +
                         (active
-                          ? "border-[color:var(--brand-pink)] text-[#b81f6c] shadow-[0_4px_14px_rgba(255,0,153,0.16)]"
-                          : "border-gray-200 text-gray-800")
+                          ? "border-[color:var(--brand-pink)] shadow-[0_4px_14px_rgba(255,0,153,0.16)]"
+                          : "border-gray-200")
                       }
                     >
-                      {brand.name}
+                      <span
+                        className={
+                          "text-[13px] font-bold " + (active ? "text-[#b81f6c]" : "text-gray-800")
+                        }
+                      >
+                        {brand.name}
+                      </span>
+                      {subtitle && (
+                        <span className="text-[11px] text-gray-400">({subtitle})</span>
+                      )}
                     </button>
                   );
                 })
@@ -407,7 +451,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
 
             <div className="mt-5">
               <span className="mb-2 block text-sm font-extrabold text-gray-700">
-                더 많은 회사의 알림을 받아보고 싶으신가요?
+                더 많은 기업의 알림을 받아보고 싶으신가요?
               </span>
               <input
                 value={moreCompanyInput}
@@ -418,7 +462,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
                     addMoreCompanyRequest();
                   }
                 }}
-                placeholder="회사명을 입력하고 Enter를 눌러 주세요"
+                placeholder="기업명 or 브랜드명을 입력하고 Enter를 눌러주세요"
                 className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-[15px] focus:border-[color:var(--brand-pink)] focus:shadow-[0_0_0_3px_rgba(255,0,153,0.1)] focus:outline-none"
               />
               {moreCompanyRequests.length > 0 && (
