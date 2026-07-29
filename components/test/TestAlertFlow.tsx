@@ -20,8 +20,18 @@ function resolvePopularBrands(brands: Brand[]): { label: string; brand: Brand | 
   });
 }
 
-// 브랜드 카드 하단에 보여줄 산하 브랜드명 — 너무 많거나 길면 잘라서 "..."으로 표시한다.
-function brandNamesSubtitle(names: string[]): string | null {
+// brand_names 컬럼은 검색용 별칭(영문 표기, "올영" 같은 줄임말 등)까지 섞여 있어서 그대로
+// 노출하면 같은 브랜드가 중복 표기된 것처럼 보인다("올리브영·올영·oliv..." 등). 카드 하단
+// 서브타이틀에는 한글 브랜드명만 우선 노출하고, 한글 표기가 아예 없는 경우에만 원본을 쓴다.
+const DISPLAY_NAME_OVERRIDES: Record<string, string[]> = {
+  CJ올리브영: ["올리브영"],
+};
+
+function brandNamesSubtitle(brand: Brand): string | null {
+  const override = DISPLAY_NAME_OVERRIDES[brand.name];
+  const raw = brand.brandNames ?? [];
+  const korean = raw.filter((n) => /[가-힣]/.test(n));
+  const names = override ?? (korean.length > 0 ? korean : raw);
   if (names.length === 0) return null;
   const full = names.join("·");
   return full.length > 14 ? `${full.slice(0, 12)}...` : full;
@@ -420,7 +430,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
               ) : (
                 filteredBrands.map((brand) => {
                   const active = brandIds.has(brand.id);
-                  const subtitle = brandNamesSubtitle(brand.brandNames ?? []);
+                  const subtitle = brandNamesSubtitle(brand);
                   return (
                     <button
                       key={brand.id}
@@ -546,7 +556,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
               별도 가입 없이, 채널 추가와 알림 신청이 한 번에 처리돼요.
             </p>
 
-            <div className="grid gap-3">
+            <div className="grid gap-4">
               <label className="block">
                 <span className="mb-1.5 block text-xs font-bold text-gray-600">
                   휴대폰 번호 <span className="text-[color:var(--brand-pink)]">*</span>
