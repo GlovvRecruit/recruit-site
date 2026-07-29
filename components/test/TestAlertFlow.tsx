@@ -51,7 +51,8 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
   const [brandQuery, setBrandQuery] = useState("");
   const [brandIds, setBrandIds] = useState<Set<string>>(new Set());
   const [categories, setCategories] = useState<Set<JobCategory>>(new Set());
-  const [moreCompanyRequest, setMoreCompanyRequest] = useState("");
+  const [moreCompanyInput, setMoreCompanyInput] = useState("");
+  const [moreCompanyRequests, setMoreCompanyRequests] = useState<string[]>([]);
 
   const [phone, setPhone] = useState("");
   const [marketingConsent, setMarketingConsent] = useState(false);
@@ -83,6 +84,17 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
       else next.add(id);
       return next;
     });
+  }
+
+  function addMoreCompanyRequest() {
+    const name = moreCompanyInput.trim();
+    if (!name || moreCompanyRequests.includes(name)) return;
+    setMoreCompanyRequests((prev) => [...prev, name]);
+    setMoreCompanyInput("");
+  }
+
+  function removeMoreCompanyRequest(name: string) {
+    setMoreCompanyRequests((prev) => prev.filter((n) => n !== name));
   }
 
   function toggleCategory(c: JobCategory) {
@@ -398,11 +410,31 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
                 더 많은 회사의 알림을 받아보고 싶으신가요?
               </span>
               <input
-                value={moreCompanyRequest}
-                onChange={(e) => setMoreCompanyRequest(e.target.value)}
-                placeholder="회사명을 입력해 주세요"
+                value={moreCompanyInput}
+                onChange={(e) => setMoreCompanyInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    addMoreCompanyRequest();
+                  }
+                }}
+                placeholder="회사명을 입력하고 Enter를 눌러 주세요"
                 className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-[15px] focus:border-[color:var(--brand-pink)] focus:shadow-[0_0_0_3px_rgba(255,0,153,0.1)] focus:outline-none"
               />
+              {moreCompanyRequests.length > 0 && (
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  {moreCompanyRequests.map((name) => (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => removeMoreCompanyRequest(name)}
+                      className="flex items-center gap-1 rounded-full border-[1.5px] border-gray-200 bg-white px-3 py-1.5 text-[12.5px] font-bold text-gray-700"
+                    >
+                      {name} <i className="ph-bold ph-x text-[10px] text-gray-400" />
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             <h2 className="mb-2.5 mt-7 text-sm font-extrabold text-gray-700">관심 직무</h2>
