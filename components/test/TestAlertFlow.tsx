@@ -302,7 +302,11 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
 
   return (
     <>
-      <div className="mx-auto mb-9 w-full max-w-[480px]">
+      <div
+        className={
+          "mx-auto w-full max-w-[480px] " + (flow === "step2" ? "mb-20" : "mb-9")
+        }
+      >
         {flow === "card" && (
           <section className="card-shadow rounded-2xl border border-gray-200 bg-white p-6">
             {subscription ? (
