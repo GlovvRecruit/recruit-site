@@ -702,6 +702,10 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
                 </span>
               </button>
 
+              <p className="m-0 text-[13px] font-semibold text-red-500">
+                * 주의 : 카톡 정책상 카카오톡 채널을 추가해야만 공고를 받아볼 수 있습니다.
+              </p>
+
               {channelStatus === "cancelled" && (
                 <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3.5 text-[13px] text-red-600">
                   채널 추가가 취소됐어요. 채널을 추가해야 카톡으로 공고를 보내드릴 수 있어요. 다시
