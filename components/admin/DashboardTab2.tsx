@@ -4,9 +4,13 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
+  LabelList,
   ResponsiveContainer,
   Tooltip,
   XAxis,
+  YAxis,
 } from "recharts";
 import { createClient } from "@/lib/supabase/client";
 
@@ -360,7 +364,6 @@ export default function DashboardTab2() {
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value)
     .slice(0, 12);
-  const maxCareersView = Math.max(1, ...careersViewRanked.map((r) => r.value));
 
   const applyClickTrend = bucketCounts(
     rows.filter((r) => r.event_type === "apply_click"),
@@ -458,29 +461,42 @@ export default function DashboardTab2() {
         {careersViewRanked.length === 0 ? (
           <p className="text-xs text-gray-400">아직 집계된 조회 데이터가 없습니다.</p>
         ) : (
-          <div className="grid gap-2.5">
-            {careersViewRanked.map((r, i) => (
-              <div key={r.label} className="flex items-center gap-3">
-                <span className="w-5 flex-none text-xs font-extrabold text-gray-300">
-                  {i + 1}
-                </span>
-                <span className="w-56 flex-none truncate text-[13px] font-semibold text-gray-700">
-                  {r.label}
-                </span>
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
-                  <div
-                    className="h-full rounded-full"
-                    style={{
-                      width: `${(r.value / maxCareersView) * 100}%`,
-                      background: "var(--brand-gradient)",
-                    }}
+          <div style={{ height: careersViewRanked.length * 42 + 20 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={careersViewRanked}
+                layout="vertical"
+                margin={{ top: 4, right: 34, left: 4, bottom: 4 }}
+              >
+                <defs>
+                  <linearGradient id="careers-rank-fill" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#fa7035" />
+                    <stop offset="100%" stopColor="#ff0099" />
+                  </linearGradient>
+                </defs>
+                <XAxis type="number" hide />
+                <YAxis
+                  type="category"
+                  dataKey="label"
+                  width={180}
+                  tick={{ fontSize: 12, fill: "#374151", fontWeight: 600 }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  contentStyle={{ fontSize: 12, borderRadius: 8, border: "1px solid #e5e7eb" }}
+                  labelStyle={{ fontWeight: 700 }}
+                  formatter={(value) => [Number(value).toLocaleString(), "조회수"]}
+                />
+                <Bar dataKey="value" fill="url(#careers-rank-fill)" radius={[0, 6, 6, 0]} barSize={18}>
+                  <LabelList
+                    dataKey="value"
+                    position="right"
+                    style={{ fontSize: 12, fontWeight: 700, fill: "#374151" }}
                   />
-                </div>
-                <span className="w-11 flex-none text-right text-xs font-bold text-gray-500">
-                  {r.value.toLocaleString()}
-                </span>
-              </div>
-            ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         )}
       </div>
