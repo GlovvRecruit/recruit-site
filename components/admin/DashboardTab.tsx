@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { JOB_CATEGORIES } from "@/lib/types";
 import DashboardTraffic from "@/components/admin/DashboardTab2";
+import CrawlCostSection from "@/components/admin/CrawlCostSection";
 
 interface LeadRow {
   brand_ids: string[];
@@ -518,6 +519,7 @@ export default function DashboardTab() {
       </div>
 
       <DashboardTraffic />
+      <CrawlCostSection />
     </div>
   );
 }
