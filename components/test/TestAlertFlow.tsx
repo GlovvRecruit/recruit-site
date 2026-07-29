@@ -38,6 +38,7 @@ function brandNamesSubtitle(brand: Brand): string | null {
 }
 
 const STORAGE_KEY = "test_onboarding_subscribed";
+const EXCLUDED_JOBS_KEY = "test_onboarding_excluded_jobs";
 
 interface StoredSubscription {
   brandIds: string[];
@@ -59,11 +60,29 @@ function readStoredSubscription(): StoredSubscription | null {
   }
 }
 
+function readExcludedJobIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = window.localStorage.getItem(EXCLUDED_JOBS_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
 export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs: Job[] }) {
   const supabaseRef = useRef(createClient());
   const [subscription, setSubscription] = useState<StoredSubscription | null>(null);
   const [flow, setFlow] = useState<FlowStep>("card");
   const [jobFilter, setJobFilter] = useState<JobFilterMode>("all");
+  const [showUnsubConfirm, setShowUnsubConfirm] = useState(false);
+
+  // "내 관심 공고"에서 하트를 끈 공고는 곧바로 사라지지 않고 맨 아래로 가라앉기만 하다가,
+  // 다음번에 이 탭에 다시 들어올 때 실제로 목록에서 제외된다(갑자기 카드가 사라지는 게
+  // 아니라 완충 시간을 준다).
+  const [excludedJobIds, setExcludedJobIds] = useState<Set<string>>(new Set());
+  const [pendingUnlikedIds, setPendingUnlikedIds] = useState<Set<string>>(new Set());
+  const pendingUnlikedRef = useRef<Set<string>>(new Set());
 
   const [brandQuery, setBrandQuery] = useState("");
   const [brandIds, setBrandIds] = useState<Set<string>>(new Set());
@@ -80,7 +99,43 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
 
   useEffect(() => {
     setSubscription(readStoredSubscription());
+    setExcludedJobIds(readExcludedJobIds());
   }, []);
+
+  useEffect(() => {
+    pendingUnlikedRef.current = pendingUnlikedIds;
+  }, [pendingUnlikedIds]);
+
+  // jobFilter가 "interested"에서 다른 값으로 바뀌는 순간(=탭을 벗어나는 순간)의 cleanup에서만
+  // 커밋한다 — pendingUnlikedIds를 deps에 넣으면 하트를 끌 때마다 곧바로 커밋돼버려서 의도한
+  // "다음 진입까지는 그대로 보인다"가 깨진다.
+  useEffect(() => {
+    return () => {
+      if (jobFilter === "interested" && pendingUnlikedRef.current.size > 0) {
+        const toExclude = pendingUnlikedRef.current;
+        setExcludedJobIds((prev) => {
+          const next = new Set(prev);
+          toExclude.forEach((id) => next.add(id));
+          try {
+            window.localStorage.setItem(EXCLUDED_JOBS_KEY, JSON.stringify([...next]));
+          } catch {
+            // localStorage 접근 실패는 무시 — 다음 세션에서 다시 시도된다.
+          }
+          return next;
+        });
+        setPendingUnlikedIds(new Set());
+      }
+    };
+  }, [jobFilter]);
+
+  function handleToggleLike(jobId: string, nextLiked: boolean) {
+    setPendingUnlikedIds((prev) => {
+      const next = new Set(prev);
+      if (nextLiked) next.delete(jobId);
+      else next.add(jobId);
+      return next;
+    });
+  }
 
   const brandNameById = useMemo(() => new Map(brands.map((b) => [b.id, b.name])), [brands]);
   const popularBrands = useMemo(() => resolvePopularBrands(brands), [brands]);
@@ -199,8 +254,20 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
     setFlow("step1");
   }
 
-  function unsubscribe() {
+  async function confirmUnsubscribe() {
+    if (subscription) {
+      try {
+        await supabaseRef.current.from("test_lead_unsubscribes").insert({
+          phone: subscription.phone,
+          brand_ids: subscription.brandIds,
+          categories: subscription.categories,
+        });
+      } catch (e) {
+        console.error("[onboarding-test] unsubscribe record failed:", e);
+      }
+    }
     window.localStorage.removeItem(STORAGE_KEY);
+    window.localStorage.removeItem(EXCLUDED_JOBS_KEY);
     setSubscription(null);
     setBrandIds(new Set());
     setCategories(new Set());
@@ -208,6 +275,9 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
     setMarketingConsent(false);
     setChannelStatus("idle");
     setJobFilter("all");
+    setExcludedJobIds(new Set());
+    setPendingUnlikedIds(new Set());
+    setShowUnsubConfirm(false);
     setFlow("card");
   }
 
@@ -215,8 +285,20 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
     if (jobFilter === "all" || !subscription) return jobs;
     const brandSet = new Set(subscription.brandIds);
     const categorySet = new Set(subscription.categories);
-    return jobs.filter((j) => brandSet.has(j.brandId) || categorySet.has(j.jobCategory));
-  }, [jobFilter, subscription, jobs]);
+    const matched = jobs.filter(
+      (j) => (brandSet.has(j.brandId) || categorySet.has(j.jobCategory)) && !excludedJobIds.has(j.id)
+    );
+    return [...matched].sort((a, b) => {
+      const aPending = pendingUnlikedIds.has(a.id) ? 1 : 0;
+      const bPending = pendingUnlikedIds.has(b.id) ? 1 : 0;
+      return aPending - bPending;
+    });
+  }, [jobFilter, subscription, jobs, excludedJobIds, pendingUnlikedIds]);
+
+  const likedJobIds = useMemo(() => {
+    if (jobFilter !== "interested") return undefined;
+    return new Set(visibleJobs.filter((j) => !pendingUnlikedIds.has(j.id)).map((j) => j.id));
+  }, [jobFilter, visibleJobs, pendingUnlikedIds]);
 
   return (
     <>
@@ -250,7 +332,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
                   </button>
                   <button
                     type="button"
-                    onClick={unsubscribe}
+                    onClick={() => setShowUnsubConfirm(true)}
                     className="flex-none rounded-xl border border-gray-200 bg-white px-4 py-3 text-[13px] font-bold text-gray-400"
                   >
                     알림 해지
@@ -682,7 +764,41 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
         </div>
       )}
 
-      <BrandJobsBrowser brands={brands} jobs={visibleJobs} />
+      <BrandJobsBrowser
+        brands={brands}
+        jobs={visibleJobs}
+        likedJobIds={likedJobIds}
+        onToggleLike={jobFilter === "interested" ? handleToggleLike : undefined}
+      />
+
+      {showUnsubConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-5">
+          <div className="w-full max-w-[360px] rounded-2xl bg-white p-6 text-center shadow-xl">
+            <h2 className="mb-1.5 text-[17px] font-extrabold tracking-tight">
+              정말로 알림 해지하시나요?
+            </h2>
+            <p className="mb-5 text-[13.5px] text-gray-500">
+              해지하면 등록해 둔 브랜드·직무의 신규 공고 카톡 알림이 더 이상 오지 않아요.
+            </p>
+            <div className="flex gap-2.5">
+              <button
+                type="button"
+                onClick={() => setShowUnsubConfirm(false)}
+                className="flex-1 rounded-xl border border-gray-200 bg-white py-3 text-[14px] font-bold text-gray-700"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={confirmUnsubscribe}
+                className="flex-1 rounded-xl bg-red-500 py-3 text-[14px] font-extrabold text-white"
+              >
+                예, 해지할게요
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

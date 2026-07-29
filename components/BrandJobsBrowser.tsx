@@ -33,9 +33,14 @@ const PAGE_SIZE = 24;
 export default function BrandJobsBrowser({
   brands,
   jobs,
+  likedJobIds,
+  onToggleLike,
 }: {
   brands: Brand[];
   jobs: Job[];
+  /** 전달되면 이 목록의 모든 카드에 컨트롤드 하트 상태를 적용한다(테스트 페이지의 "내 관심 공고" 전용). */
+  likedJobIds?: Set<string>;
+  onToggleLike?: (jobId: string, nextLiked: boolean) => void;
 }) {
   const [filter, setFilter] = useState<JobCategory | null>(null);
   const [brandQuery, setBrandQuery] = useState("");
@@ -142,7 +147,15 @@ export default function BrandJobsBrowser({
         {visible.map((job) => {
           const brand = brandById.get(job.brandId);
           if (!brand) return null;
-          return <JobCard key={job.id} job={job} brand={brand} />;
+          return (
+            <JobCard
+              key={job.id}
+              job={job}
+              brand={brand}
+              liked={likedJobIds?.has(job.id)}
+              onToggleLike={onToggleLike}
+            />
+          );
         })}
       </div>
 

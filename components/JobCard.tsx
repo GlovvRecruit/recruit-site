@@ -5,8 +5,20 @@ import { useState } from "react";
 import type { Brand, Job } from "@/lib/types";
 import BrandThumb from "@/components/BrandThumb";
 
-export default function JobCard({ job, brand }: { job: Job; brand: Brand }) {
-  const [saved, setSaved] = useState(false);
+export default function JobCard({
+  job,
+  brand,
+  liked,
+  onToggleLike,
+}: {
+  job: Job;
+  brand: Brand;
+  /** 전달되면 하트 상태를 부모가 제어한다(컨트롤드) — 생략 시 카드 내부 상태로 동작. */
+  liked?: boolean;
+  onToggleLike?: (jobId: string, nextLiked: boolean) => void;
+}) {
+  const [localSaved, setLocalSaved] = useState(false);
+  const saved = liked ?? localSaved;
 
   return (
     <Link
@@ -19,7 +31,9 @@ export default function JobCard({ job, brand }: { job: Job; brand: Brand }) {
           type="button"
           onClick={(e) => {
             e.preventDefault();
-            setSaved((v) => !v);
+            const next = !saved;
+            if (onToggleLike) onToggleLike(job.id, next);
+            else setLocalSaved(next);
           }}
           aria-label={saved ? "저장 취소" : "저장"}
           aria-pressed={saved}
