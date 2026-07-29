@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
-import AlertCta from "@/components/AlertCta";
-import BrandJobsBrowser from "@/components/BrandJobsBrowser";
+import AlertOnboardingFlow from "@/components/AlertOnboardingFlow";
 import { getBrands, getJobsSummary } from "@/lib/data";
 
 const PAGE_TITLE = "앤마들린 채용 | 메이저 뷰티 채용공고 모음 | 신규 채용 공고 카톡 알림";
@@ -36,9 +35,7 @@ export default async function BrandJobsPage() {
           언제든 아래에서 바로 확인할 수 있어요.
         </p>
 
-        <AlertCta />
-
-        <BrandJobsBrowser brands={brands} jobs={jobs} />
+        <AlertOnboardingFlow brands={brands} jobs={jobs} />
 
         <p className="mt-[34px] border-t border-dashed border-gray-200 pt-4 text-[12.5px] leading-relaxed text-gray-400">
           대부분의 메이저 뷰티 브랜드가 이용하는 <b className="text-gray-600">글로브</b>에서 뷰티
