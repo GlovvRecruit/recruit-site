@@ -325,6 +325,8 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
                     .filter(Boolean)
                     .join(", ")}
                   {subscription.brandIds.length > 3 ? " 외" : ""}
+                  {subscription.categories.length > 0 &&
+                    ` / ${subscription.categories.join(", ")}`}
                 </p>
                 <div className="flex gap-2">
                   <button
