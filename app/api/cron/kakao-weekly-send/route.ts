@@ -7,6 +7,7 @@ interface LeadRow {
   brand_ids: string[];
   categories: string[];
   last_sent_at: string | null;
+  created_at: string;
 }
 
 interface CareersJobRow {
@@ -22,8 +23,6 @@ interface JobRow {
   job_category: string;
   created_at: string;
 }
-
-const EPOCH = "1970-01-01T00:00:00Z";
 
 // 상시 인재풀/인재 Pool 등록 공고는 "신규 채용 공고"가 아니라 상시 접수용 안내이므로 발송에서 제외한다.
 const TALENT_POOL_PATTERN = /인재\s*풀|인재\s*pool|talent\s*pool/i;
@@ -94,7 +93,7 @@ export async function GET(request: Request) {
   const [leadsRes, careersJobsRes, jobsRes, brandsRes] = await Promise.all([
     supabase
       .from("leads")
-      .select("id, phone, brand_ids, categories, last_sent_at")
+      .select("id, phone, brand_ids, categories, last_sent_at, created_at")
       .eq("unsubscribed", false)
       .eq("is_channel_friend", true)
       // 마케팅성 메시지이므로 마케팅 수신 동의가 없으면 절대 발송하지 않는다(가입 폼에서도
@@ -134,7 +133,10 @@ export async function GET(request: Request) {
   let skipped = 0;
 
   for (const lead of leads) {
-    const since = lead.last_sent_at ?? EPOCH;
+    // 첫 발송(last_sent_at 없음)에는 가입 이후 새로 열린 공고만 보낸다 — 가입 시점 이전부터
+    // 열려있던 공고까지 전부 "신규"로 보이면 매칭 범위를 넓게 잡은 구독자일수록 첫 메시지가
+    // 지나치게 커진다.
+    const since = lead.last_sent_at ?? lead.created_at;
     const globeNew = careersJobs
       .filter((j) => j.created_at > since && !isTalentPool(j.title))
       .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
