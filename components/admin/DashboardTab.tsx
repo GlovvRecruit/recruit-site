@@ -25,14 +25,9 @@ interface JobCategoryRow {
   job_category: string;
 }
 
-interface CareersJobRow {
-  id: string;
-  title: string;
-}
-
-// page_views는 브랜드 공고 조회에는 brand_id를 같이 저장하지만, 직군·자사 공고 제목까지
-// 저장하지는 않는다. "/jobs/:id", "/careers/:id" 경로에서 id만 뽑아 각각 jobs.job_category,
-// careers_jobs.title과 매칭해 집계한다(스키마 변경 없이 기존 path만으로 계산).
+// page_views는 브랜드 공고 조회에는 brand_id를 같이 저장하지만 직군까지 저장하지는 않는다.
+// "/jobs/:id" 경로에서 id만 뽑아 jobs.job_category와 매칭해 집계한다(스키마 변경 없이 기존
+// path만으로 계산).
 function extractDetailId(path: string, prefix: string): string | null {
   if (!path.startsWith(prefix)) return null;
   const rest = path.slice(prefix.length);
@@ -105,7 +100,6 @@ export default function DashboardTab() {
   const [newThisWeek, setNewThisWeek] = useState(0);
   const [brandNameById, setBrandNameById] = useState<Map<string, string>>(new Map());
   const [jobCategoryById, setJobCategoryById] = useState<Map<string, string>>(new Map());
-  const [careersTitleById, setCareersTitleById] = useState<Map<string, string>>(new Map());
   const [pageViews, setPageViews] = useState<PageViewRow[] | null>(null);
 
   useEffect(() => {
@@ -120,7 +114,6 @@ export default function DashboardTab() {
         leadsRes,
         brandRows,
         jobCategoryRows,
-        careersJobRows,
         allPageViews,
       ] = await Promise.all([
         supabase.from("brands").select("*", { count: "exact", head: true }),
@@ -130,7 +123,6 @@ export default function DashboardTab() {
         supabase.from("leads").select("brand_ids, categories, marketing_opt_in, unsubscribed, created_at"),
         supabase.from("brands").select("id, name"),
         supabase.from("jobs").select("id, job_category"),
-        supabase.from("careers_jobs").select("id, title"),
         fetchAllPageViews(supabase),
       ]);
       if (cancelled) return;
@@ -156,9 +148,6 @@ export default function DashboardTab() {
       setBrandNameById(new Map((brandRows.data ?? []).map((b) => [b.id, b.name])));
       setJobCategoryById(
         new Map((jobCategoryRows.data as JobCategoryRow[] | null ?? []).map((j) => [j.id, j.job_category]))
-      );
-      setCareersTitleById(
-        new Map((careersJobRows.data as CareersJobRow[] | null ?? []).map((j) => [j.id, j.title]))
       );
       setPageViews(allPageViews);
     }
@@ -269,31 +258,17 @@ export default function DashboardTab() {
   );
 
   const categoryViewCounts = new Map<string, number>();
-  const careersViewCounts = new Map<string, number>();
   for (const pv of pageViews ?? []) {
     if (pv.event_type !== "view") continue;
     const jobId = extractDetailId(pv.path, "/jobs/");
-    if (jobId) {
-      const category = jobCategoryById.get(jobId);
-      if (category) categoryViewCounts.set(category, (categoryViewCounts.get(category) ?? 0) + 1);
-      continue;
-    }
-    const careersId = extractDetailId(pv.path, "/careers/");
-    if (careersId) {
-      const title = careersTitleById.get(careersId);
-      if (title) careersViewCounts.set(title, (careersViewCounts.get(title) ?? 0) + 1);
-    }
+    if (!jobId) continue;
+    const category = jobCategoryById.get(jobId);
+    if (category) categoryViewCounts.set(category, (categoryViewCounts.get(category) ?? 0) + 1);
   }
   const categoryViewBars = toBars(
     [...categoryViewCounts.entries()]
       .map(([label, value]) => ({ label, value }))
       .sort((a, b) => b.value - a.value)
-  );
-  const careersViewBars = toBars(
-    [...careersViewCounts.entries()]
-      .map(([label, value]) => ({ label, value }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 12)
   );
 
   return (
@@ -458,40 +433,6 @@ export default function DashboardTab() {
             {categoryViewBars.map((b) => (
               <div key={b.label} className="flex items-center gap-3">
                 <span className="w-16 flex-none text-[13px] font-semibold text-gray-600">
-                  {b.label}
-                </span>
-                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
-                  <div
-                    className="h-full rounded-full"
-                    style={{ width: `${b.pct}%`, background: "var(--brand-gradient)" }}
-                  />
-                </div>
-                <span className="w-11 flex-none text-right text-xs font-bold text-gray-500">
-                  {b.display}
-                </span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-
-      <div className="mb-5 rounded-2xl border border-gray-200 bg-white p-[22px]">
-        <h2 className="mb-1 text-[15px] font-extrabold">앤마들린 채용 순위 (조회수 기준)</h2>
-        <p className="mb-4 text-[12.5px] text-gray-400">
-          자사(글로브·플릭스) 채용 공고 상세 페이지 조회수 기준(상위 12개)
-        </p>
-        {!pageViews ? (
-          <p className="text-xs text-gray-400">불러오는 중…</p>
-        ) : careersViewBars.length === 0 ? (
-          <p className="text-xs text-gray-400">아직 집계된 조회 데이터가 없습니다.</p>
-        ) : (
-          <div className="grid gap-2.5">
-            {careersViewBars.map((b, i) => (
-              <div key={b.label} className="flex items-center gap-3">
-                <span className="w-5 flex-none text-xs font-extrabold text-gray-300">
-                  {i + 1}
-                </span>
-                <span className="w-56 flex-none truncate text-[13px] font-semibold text-gray-700">
                   {b.label}
                 </span>
                 <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">

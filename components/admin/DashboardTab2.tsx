@@ -23,6 +23,14 @@ interface PageViewRow {
   created_at: string;
 }
 
+// page_views에는 자사 채용 공고 제목이 따로 저장되지 않아서, "/careers/:id" 경로의 id만
+// 뽑아 careers_jobs.title과 매칭해 집계한다.
+function extractDetailId(path: string, prefix: string): string | null {
+  if (!path.startsWith(prefix)) return null;
+  const rest = path.slice(prefix.length);
+  return rest && !rest.includes("/") ? rest : null;
+}
+
 function dateKey(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
@@ -339,6 +347,21 @@ export default function DashboardTab2() {
     false
   );
 
+  const careersTitleById = new Map(careersJobs.map((j) => [j.id, j.title]));
+  const careersViewCounts = new Map<string, number>();
+  for (const r of viewRows) {
+    const id = extractDetailId(r.path, "/careers/");
+    if (!id) continue;
+    const title = careersTitleById.get(id);
+    if (!title) continue;
+    careersViewCounts.set(title, (careersViewCounts.get(title) ?? 0) + 1);
+  }
+  const careersViewRanked = [...careersViewCounts.entries()]
+    .map(([label, value]) => ({ label, value }))
+    .sort((a, b) => b.value - a.value)
+    .slice(0, 12);
+  const maxCareersView = Math.max(1, ...careersViewRanked.map((r) => r.value));
+
   const applyClickTrend = bucketCounts(
     rows.filter((r) => r.event_type === "apply_click"),
     days30,
@@ -426,6 +449,41 @@ export default function DashboardTab2() {
           <TrendCard title="월간 (최근 12개월)" data={careersJobMonthlyTrend} color="#00b894" />
         </div>
       )}
+
+      <div className="mb-8 rounded-2xl border border-gray-200 bg-white p-[22px]">
+        <h2 className="mb-1 text-[15px] font-extrabold">앤마들린 채용 순위 (조회수 기준)</h2>
+        <p className="mb-4 text-[12.5px] text-gray-400">
+          자사(글로브·플릭스) 채용 공고 상세 페이지 조회수 기준(상위 12개)
+        </p>
+        {careersViewRanked.length === 0 ? (
+          <p className="text-xs text-gray-400">아직 집계된 조회 데이터가 없습니다.</p>
+        ) : (
+          <div className="grid gap-2.5">
+            {careersViewRanked.map((r, i) => (
+              <div key={r.label} className="flex items-center gap-3">
+                <span className="w-5 flex-none text-xs font-extrabold text-gray-300">
+                  {i + 1}
+                </span>
+                <span className="w-56 flex-none truncate text-[13px] font-semibold text-gray-700">
+                  {r.label}
+                </span>
+                <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${(r.value / maxCareersView) * 100}%`,
+                      background: "var(--brand-gradient)",
+                    }}
+                  />
+                </div>
+                <span className="w-11 flex-none text-right text-xs font-bold text-gray-500">
+                  {r.value.toLocaleString()}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       <h2 className="mb-2.5 text-base font-extrabold tracking-tight">클릭 수 변화 (최근 30일)</h2>
       <div className="mb-8 grid grid-cols-1 gap-3.5 sm:grid-cols-3">
