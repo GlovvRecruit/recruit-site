@@ -5,6 +5,21 @@ import { useState } from "react";
 import type { Brand, Job } from "@/lib/types";
 import BrandThumb from "@/components/BrandThumb";
 
+/**
+ * 마감일 배지. 마감일을 모르는 공고(원본에 표기 없음 / "채용시 마감")는 배지를 달지 않는다 —
+ * "상시"라고 단정하면 실제로는 곧 마감인 공고를 안심시킬 수 있어서, 마감 임박순 정렬에서만
+ * 안내 문구로 설명한다.
+ */
+function getDeadlineBadge(deadline: string | null | undefined) {
+  if (!deadline) return null;
+  const end = new Date(deadline).getTime();
+  if (Number.isNaN(end)) return null;
+  const days = Math.ceil((end - Date.now()) / 86400_000);
+  if (days < 0) return null; // 이미 지난 마감일은 표시하지 않는다(크롤러가 정리할 대상)
+  if (days === 0) return { label: "오늘 마감", urgent: true };
+  return { label: `D-${days}`, urgent: days <= 7 };
+}
+
 export default function JobCard({
   job,
   brand,
@@ -19,6 +34,7 @@ export default function JobCard({
 }) {
   const [localSaved, setLocalSaved] = useState(false);
   const saved = liked ?? localSaved;
+  const deadlineBadge = getDeadlineBadge(job.deadline);
 
   return (
     <Link
@@ -59,6 +75,16 @@ export default function JobCard({
           <span className="rounded-lg bg-gray-100 px-2.5 py-1 text-[11px] font-bold text-gray-600">
             {job.jobCategory}
           </span>
+          {deadlineBadge && (
+            <span
+              className={
+                "rounded-lg px-2.5 py-1 text-[11px] font-bold " +
+                (deadlineBadge.urgent ? "bg-red-50 text-red-500" : "bg-gray-100 text-gray-500")
+              }
+            >
+              {deadlineBadge.label}
+            </span>
+          )}
         </div>
         <h3 className="mb-2.5 text-[15.5px] font-extrabold leading-snug tracking-tight">
           {job.title}

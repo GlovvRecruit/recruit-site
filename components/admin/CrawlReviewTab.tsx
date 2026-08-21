@@ -17,6 +17,7 @@ interface StagingRow {
   description: string | null;
   description_images: string[] | null;
   review_status: string;
+  deadline?: string | null;
   created_at: string;
 }
 
@@ -109,6 +110,53 @@ export default function CrawlReviewTab() {
 
       setItems((prev) =>
         prev.map((r) => (r.id === row.id ? { ...r, review_status: "edited" } : r))
+      );
+    } finally {
+      setSavingId(null);
+    }
+  }
+
+  /**
+   * 검수 승인 → 공개. 크롤링은 staging까지만 적재하므로(검수 전 공개 금지, 2026-07-30 사고 이후)
+   * 이 버튼을 누른 공고만 jobs에 올라가 사이트·카톡 알림에 나간다.
+   */
+  async function approveRow(row: StagingRow) {
+    setSavingId(row.id);
+    try {
+      const { data: brand, error: brandError } = await supabase
+        .from("brands")
+        .upsert({ name: row.brand_name }, { onConflict: "name" })
+        .select("id")
+        .single();
+      if (brandError || !brand) {
+        alert(`브랜드 저장 실패: ${brandError?.message ?? "unknown"}`);
+        return;
+      }
+      const { error: jobsError } = await supabase.from("jobs").upsert(
+        {
+          brand_id: brand.id,
+          title: row.title,
+          job_category: categoryOf(row),
+          career_level: row.career_level,
+          region: row.region,
+          source_url: row.source_url,
+          description: row.description,
+          description_images: row.description_images,
+          deadline: row.deadline ?? null,
+          status: "open",
+        },
+        { onConflict: "source_url" }
+      );
+      if (jobsError) {
+        alert(`공고 공개 실패: ${jobsError.message}`);
+        return;
+      }
+      await supabase
+        .from("crawled_jobs_staging")
+        .update({ review_status: "approved", reviewed_at: new Date().toISOString() })
+        .eq("id", row.id);
+      setItems((prev) =>
+        prev.map((r) => (r.id === row.id ? { ...r, review_status: "approved" } : r))
       );
     } finally {
       setSavingId(null);

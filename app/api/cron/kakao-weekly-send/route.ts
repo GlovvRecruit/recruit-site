@@ -1,5 +1,6 @@
 import { SolapiMessageService } from "solapi";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { matchesInterest } from "@/lib/interest";
 
 interface LeadRow {
   id: string;
@@ -8,6 +9,8 @@ interface LeadRow {
   categories: string[];
   last_sent_at: string | null;
   created_at: string;
+  /** 링크에서 구독 정보를 복원하기 위한 불투명 토큰(0020 마이그레이션) */
+  access_token: string | null;
 }
 
 interface CareersJobRow {
@@ -38,11 +41,16 @@ function isTalentPool(title: string): boolean {
 const MAX_ITEMS_PER_SECTION = 10;
 const SECTION_CHAR_BUDGET = 550;
 
+/**
+ * moreUrl이 null이면 넘치는 건수·빈 상태에서 URL을 붙이지 않는다 — 메시지 하단에 카카오 템플릿
+ * 버튼이 있어서 본문에 같은 링크를 또 넣으면 중복이다(2026-07-30 사용자 피드백).
+ */
 function formatJobLines(
   jobs: { title: string; url: string; brandName?: string }[],
-  moreUrl: string
+  moreUrl: string | null
 ): string {
-  if (jobs.length === 0) return "이번 주 신규 공고가 없어요.";
+  // 공고 줄과 같은 모양(앞에 점)으로 맞춘다.
+  if (jobs.length === 0) return "· 이번 주 신규 공고가 없어요.";
   const lines: string[] = [];
   let used = 0;
   for (const j of jobs) {
@@ -54,7 +62,9 @@ function formatJobLines(
   }
   const remaining = jobs.length - lines.length;
   if (remaining > 0) {
-    lines.push(`…외 ${remaining}건 더보기\n  ${moreUrl}`);
+    lines.push(
+      moreUrl ? `…외 ${remaining}건 더보기\n  ${moreUrl}` : `· 외 ${remaining}건은 아래 버튼에서 볼 수 있어요.`
+    );
   }
   return lines.join("\n");
 }
@@ -73,7 +83,9 @@ export async function GET(request: Request) {
   const apiKey = process.env.SOLAPI_API_KEY;
   const apiSecret = process.env.SOLAPI_API_SECRET;
   const pfId = process.env.SOLAPI_PF_ID;
-  const templateId = process.env.SOLAPI_TEMPLATE_ID;
+  // ?template=<ID> — 새 템플릿을 운영 환경변수를 바꾸기 전에 시험 발송해보기 위한 override.
+  // 확정되면 SOLAPI_TEMPLATE_ID 환경변수를 바꾸는 게 맞다(이 파라미터는 테스트 용도).
+  const templateId = url.searchParams.get("template") || process.env.SOLAPI_TEMPLATE_ID;
   const siteUrl = process.env.SITE_BASE_URL;
   if (!apiKey || !apiSecret || !pfId || !templateId || !siteUrl) {
     return Response.json(
@@ -93,7 +105,7 @@ export async function GET(request: Request) {
   const [leadsRes, careersJobsRes, jobsRes, brandsRes] = await Promise.all([
     supabase
       .from("leads")
-      .select("id, phone, brand_ids, categories, last_sent_at, created_at")
+      .select("id, phone, brand_ids, categories, last_sent_at, created_at, access_token")
       .eq("unsubscribed", false)
       .eq("is_channel_friend", true)
       // 마케팅성 메시지이므로 마케팅 수신 동의가 없으면 절대 발송하지 않는다(가입 폼에서도
@@ -107,7 +119,13 @@ export async function GET(request: Request) {
     supabase.from("brands").select("id, name"),
   ]);
 
-  const leads = (leadsRes.data as LeadRow[]) ?? [];
+  // ?only=01099712034 — 그 번호 한 명에게만 보낸다(실발송 테스트용). preview와 함께 쓸 수 있다.
+  // 전체 구독자에게 잘못 보내는 사고를 막기 위한 안전장치이므로 숫자만 비교한다.
+  const onlyDigits = (url.searchParams.get("only") ?? "").replace(/[^0-9]/g, "");
+  const allLeads = (leadsRes.data as LeadRow[]) ?? [];
+  const leads = onlyDigits
+    ? allLeads.filter((l) => l.phone.replace(/[^0-9]/g, "") === onlyDigits)
+    : allLeads;
   const careersJobs = (careersJobsRes.data as CareersJobRow[]) ?? [];
   const jobs = (jobsRes.data as JobRow[]) ?? [];
   const brandNameById = new Map((brandsRes.data ?? []).map((b) => [b.id, b.name as string]));
@@ -128,6 +146,11 @@ export async function GET(request: Request) {
       disableSms: boolean;
       bms: { targeting: "I"; chatBubbleType: "TEXT" };
     };
+    // 메시지 하단 버튼("전체 브랜드 공고")은 **카카오 브랜드 메시지 템플릿에 등록된 버튼**이고,
+    // 발송 API로 buttons를 같이 보내도 템플릿 쪽이 우선해 무시된다(2026-07-30 실발송으로 확인).
+    // 버튼 링크를 바꾸려면 SOLAPI 콘솔에서 템플릿을 수정해야 한다. 템플릿 버튼 URL은 고정이라
+    // 사람별 토큰을 실을 수 없으므로 토큰 없이도 동작하는 /my-jobs로 걸어야 한다
+    // (그 화면은 localStorage에 저장된 구독 정보로 열린다).
   }[] = [];
   const leadByPhone = new Map<string, LeadRow>();
   let skipped = 0;
@@ -137,34 +160,41 @@ export async function GET(request: Request) {
     // 열려있던 공고까지 전부 "신규"로 보이면 매칭 범위를 넓게 잡은 구독자일수록 첫 메시지가
     // 지나치게 커진다.
     const since = lead.last_sent_at ?? lead.created_at;
-    const globeNew = careersJobs
-      .filter((j) => j.created_at > since && !isTalentPool(j.title))
+    // 글로브(자사) 공고는 발송할 때마다 **신규 여부와 무관하게 전부** 맨 위에 넣는다 — 이 발송의
+    // 목적 자체가 자사 채용 공고 홍보이기 때문이다(순서는 템플릿에서 글로브 → 관심 공고 순).
+    const globeAll = careersJobs
+      .filter((j) => !isTalentPool(j.title))
       .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
     const interestNew = jobs
       .filter(
         (j) =>
           j.created_at > since &&
           !isTalentPool(j.title) &&
-          (lead.brand_ids?.includes(j.brand_id) || lead.categories?.includes(j.job_category))
+          matchesInterest(j.brand_id, j.job_category, lead.brand_ids, lead.categories)
       )
       .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
 
-    if (globeNew.length === 0 && interestNew.length === 0) {
+    // **신규 관심 공고가 없으면 아예 보내지 않는다**(2026-07-30 결정). 글로브 공고를 항상 싣긴
+    // 하지만 그것만으로 메시지를 보내면 매주 같은 내용이 반복돼 광고로만 읽힌다 — 새 소식이
+    // 있을 때 그 메시지 맨 위에 자사 공고를 함께 노출하는 방식으로 홍보 목적을 달성한다.
+    if (interestNew.length === 0) {
       skipped += 1;
       continue;
     }
 
     const globeLines = formatJobLines(
-      globeNew.map((j) => ({ title: j.title, url: `${siteUrl}/careers/${j.id}` })),
+      globeAll.map((j) => ({ title: j.title, url: `${siteUrl}/careers/${j.id}` })),
       `${siteUrl}/careers`
     );
+    // 관심 공고 섹션은 본문에 링크를 넣지 않는다 — 하단 템플릿 버튼이 /my-jobs로 보내주므로.
+    // 버튼 링크를 `.../my-jobs?t=#{토큰}`으로 등록해야 사람별 화면이 열린다(변수는 아래에서 채움).
     const interestLines = formatJobLines(
       interestNew.map((j) => ({
         title: j.title,
         url: `${siteUrl}/jobs/${j.id}`,
         brandName: brandNameById.get(j.brand_id),
       })),
-      `${siteUrl}/brand-jobs`
+      null
     );
 
     const digits = lead.phone.replace(/[^0-9]/g, "");
@@ -178,10 +208,33 @@ export async function GET(request: Request) {
         variables: {
           "#{글로브공고}": globeLines,
           "#{관심공고}": interestLines,
+          // 템플릿 버튼 링크를 `https://.../my-jobs?t=#{토큰}` 으로 등록해두면 버튼도 사람별로
+          // 정확한 관심 공고 화면을 열 수 있다(템플릿 버튼 URL 자체는 고정이라 변수가 유일한 방법).
+          // 템플릿에 이 변수가 없으면 그냥 사용되지 않는다. 변수명은 템플릿 표기와 정확히 같아야 함.
+          "#{토큰}": lead.access_token ?? "",
         },
         disableSms: true,
         bms: { targeting: "I", chatBubbleType: "TEXT" },
       },
+    });
+  }
+
+  // ?preview=1 — 실제로 발송하지 않고 각 수신자에게 갈 본문·버튼 링크를 그대로 돌려준다.
+  // 링크가 제대로 실렸는지 눈으로 확인할 방법이 없어서 추가했다(발송은 되돌릴 수 없으므로
+  // 템플릿·링크를 건드린 뒤에는 이걸로 먼저 확인할 것).
+  if (url.searchParams.get("preview") === "1") {
+    return Response.json({
+      ok: true,
+      preview: true,
+      // 어떤 템플릿으로 나가는지 확인할 수 있게 같이 돌려준다(?template= override 여부 판별용).
+      templateId,
+      targeted: leads.length,
+      wouldSend: messages.length,
+      skipped,
+      messages: messages.map((m) => ({
+        to: `${m.to.slice(0, 5)}****${m.to.slice(-2)}`,
+        variables: m.kakaoOptions.variables,
+      })),
     });
   }
 

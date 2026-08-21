@@ -12,17 +12,27 @@ const hasSupabaseEnv = !!(
   process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
 
+/**
+ * 화면에 노출할 브랜드 목록.
+ *
+ * **열린 공고가 하나라도 있는 브랜드만** 돌려준다. 크롤링이 대상 후보 이름으로 brands 행을 만들기
+ * 때문에, 검수 전이거나 잘못 잡힌 후보까지 관심 기업 선택 목록에 섞여 나왔다
+ * (dalba (달바 US), Soil to Soil, DIV(다이브) 등 — 2026-07-30 지적). 공고가 실제로 수집·공개된
+ * 브랜드만 보여주면 목록이 스크래핑 결과와 항상 일치하고, 승인되면 자동으로 다시 나타난다.
+ */
 export async function getBrands(): Promise<Brand[]> {
   if (!hasSupabaseEnv) return sampleBrands;
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("brands")
-      .select("*")
-      .eq("is_active", true)
-      .order("name");
+    const [{ data, error }, { data: openJobs }] = await Promise.all([
+      supabase.from("brands").select("*").eq("is_active", true).order("name"),
+      supabase.from("jobs").select("brand_id").eq("status", "open"),
+    ]);
+    const brandIdsWithJobs = new Set((openJobs ?? []).map((j) => j.brand_id as string));
     if (error || !data || data.length === 0) return sampleBrands;
-    return data.map((b) => ({
+    const visible = data.filter((b) => brandIdsWithJobs.has(b.id));
+    if (visible.length === 0) return sampleBrands;
+    return visible.map((b) => ({
       id: b.id,
       name: b.name,
       logoUrl: b.logo_url,
@@ -70,7 +80,7 @@ export async function getJobs(): Promise<Job[]> {
 // description/description_images 같은 큰 텍스트 컬럼은 필요 없다. 전체 열람 공고가
 // 많아지면서 getJobs()의 select("*")가 페이지 로드를 눈에 띄게 느리게 만들어 분리했다.
 const JOB_SUMMARY_COLUMNS =
-  "id, brand_id, title, job_category, career_level, region, source_url, status, created_at";
+  "id, brand_id, title, job_category, career_level, region, source_url, status, created_at, deadline";
 
 function mapJobSummaryRow(j: {
   id: string;
@@ -82,6 +92,7 @@ function mapJobSummaryRow(j: {
   source_url: string;
   status: Job["status"];
   created_at: string;
+  deadline?: string | null;
 }): Job {
   return {
     id: j.id,
@@ -93,6 +104,7 @@ function mapJobSummaryRow(j: {
     sourceUrl: j.source_url,
     status: j.status,
     createdAt: j.created_at,
+    deadline: j.deadline ?? null,
   };
 }
 

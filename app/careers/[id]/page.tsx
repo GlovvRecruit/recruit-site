@@ -116,11 +116,14 @@ function buildSections(job: CareersJob) {
   );
   if (!hasCustomSections) return DEFAULT_SECTIONS;
 
+  // 근무 조건·혜택을 **맨 앞**에 둔다(2026-08-21 결정). 시급·근무지·정규직 전환 정보를
+  // 네 번째가 아니라 첫 번째로 올려, 스크롤이 얕은 모바일 유입자도 조건을 보게 하는 것이 목적이다.
+  // 급여는 히어로에서 단독 강조하지 않고 이 섹션 안에서 다른 혜택과 함께 읽히게 한다.
   return [
+    { title: "근무 조건·혜택", items: splitLines(job.benefits) },
     { title: "이런 일을 해요", items: splitLines(job.responsibilities) },
     { title: "이런 분을 찾아요", items: splitLines(job.requirements) },
     { title: "이런 분이면 더 좋아요", items: splitLines(job.niceToHaves) },
-    { title: "근무 조건·혜택", items: splitLines(job.benefits) },
   ].filter((s) => s.items.length > 0);
 }
 
@@ -375,6 +378,20 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
               ... 등 2,000개+
             </p>
           </div>
+
+          {/* PARTNERS 아래 얇은 CTA 바. 하단 그라디언트 CTA를 복제하면 페이지가 끝난 것처럼
+              보여 스크롤이 멈추므로, 높이를 낮추고 아웃라인 톤으로 위계를 낮춘다(2026-08-21). */}
+          <div className="mt-5 flex flex-wrap items-center justify-between gap-3 rounded-[14px] border border-gray-200 bg-white px-5 py-3.5">
+            <p className="m-0 text-[14px] font-bold text-gray-700">
+              지금 보신 브랜드들과 함께 일하게 됩니다
+            </p>
+            <ApplyCtaButton
+              jobTitle={job.title}
+              className="inline-flex flex-none cursor-pointer items-center gap-1.5 rounded-[10px] border border-gray-900 bg-white px-4 py-2 text-[13.5px] font-extrabold text-gray-900"
+            >
+              이력서 없이도 3분 이내 지원하기 <i className="ph-bold ph-arrow-right" />
+            </ApplyCtaButton>
+          </div>
         </section>
 
         <section className="mt-[52px] grid gap-5">
@@ -568,11 +585,22 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
               ))}
             </div>
             <div className="mt-6 text-center">
+              <p className="mb-3 text-[17px] font-extrabold leading-snug text-[color:var(--brand-pink)]">
+                ★ 앤마들린 대표가 이용 브랜드 대표에게 직접 연락해 추천
+              </p>
               <Link
                 href="/brand-jobs/for-interns"
                 className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-[26px] py-3.5 text-[15px] font-bold text-white no-underline"
               >
-                인턴 종료 후 취업할 확률이 높은 채용 공고 확인하기{" "}
+                {/* 모바일에서는 한 줄로 넣으면 버튼이 너무 넓어져 두 줄로 끊어 보여준다. */}
+                <span className="hidden sm:inline">
+                  인턴 종료 후 취업할 확률이 높은 글로브 이용 브랜드 공고 확인하기
+                </span>
+                <span className="text-left leading-snug sm:hidden">
+                  인턴 종료 후 취업할 확률 높은
+                  <br />
+                  글로브 이용 브랜드 공고 확인하기
+                </span>
                 <i className="ph-bold ph-arrow-right" />
               </Link>
             </div>

@@ -1,4 +1,5 @@
 import { ingestCrawledOpenings, type CrawledOpening } from "@/lib/crawler/ingest";
+import { parseDeadline } from "@/lib/crawler/deadline";
 
 const BASE_URL = "https://www.coreana.com";
 const SEARCH_URL = `${BASE_URL}/recruit/list`;
@@ -106,6 +107,8 @@ export async function GET(request: Request) {
       sourceUrl: o.sourceUrl,
       description,
       descriptionImages: null,
+      // 게시판형 자사 채용 페이지는 마감일 표기가 제각각이라 확실히 읽히는 것만 잡는다.
+      deadline: parseDeadline([o.title, description].filter(Boolean).join(" ")),
     });
   }
 

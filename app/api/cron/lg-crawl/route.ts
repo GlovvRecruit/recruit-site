@@ -1,10 +1,13 @@
 import { ingestCrawledOpenings, type CrawledOpening } from "@/lib/crawler/ingest";
+import { parseExplicitDeadline } from "@/lib/crawler/deadline";
 
 interface LgJobNotice {
   jobNoticeId: number;
   jobNoticeName: string;
   careerTypeName: string;
   noticeStatus: string;
+  /** LG careers API가 내려주는 확정 마감일. 예: "2026.08.02 23:00" (KST) */
+  recEndDateTime: string | null;
 }
 
 interface LgRecSector {
@@ -102,6 +105,7 @@ export async function GET(request: Request) {
       sourceUrl: `https://careers.lg.com/apply/detail?id=${notice.jobNoticeId}`,
       description: sectors.length > 0 ? buildDescription(sectors) : null,
       descriptionImages: null,
+      deadline: parseExplicitDeadline(notice.recEndDateTime),
     });
   }
 

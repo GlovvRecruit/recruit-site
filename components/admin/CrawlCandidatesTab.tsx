@@ -21,6 +21,7 @@ interface CandidateRow {
   matched_brand_id: string | null;
   notes: string | null;
   researched_at: string | null;
+  crawl_approved: boolean;
 }
 
 const STATUS_META: Record<Status, { label: string; color: string }> = {
@@ -45,7 +46,7 @@ async function fetchAllCandidates(
   while (true) {
     const { data, error } = await supabase
       .from("crawl_candidate_brands")
-      .select("id, name, list_rank, status, career_url, matched_brand_id, notes, researched_at")
+      .select("id, name, list_rank, status, career_url, matched_brand_id, notes, researched_at, crawl_approved")
       .order("list_rank", { ascending: true })
       .range(from, from + CHUNK - 1);
     if (error || !data) break;
@@ -101,7 +102,8 @@ export default function CrawlCandidatesTab() {
     setSavingId(id);
     try {
       const supabase = createClient();
-      const fullPatch = { ...patch, researched_at: new Date().toISOString() };
+      const fullPatch: Record<string, unknown> = { ...patch, researched_at: new Date().toISOString() };
+      if ("crawl_approved" in patch) fullPatch.crawl_approved_at = patch.crawl_approved ? new Date().toISOString() : null;
       const { error } = await supabase
         .from("crawl_candidate_brands")
         .update(fullPatch)
@@ -189,6 +191,7 @@ export default function CrawlCandidatesTab() {
               <th className="w-40 py-2.5 pr-3 font-bold">상태</th>
               <th className="py-2.5 pr-3 font-bold">채용 페이지 URL</th>
               <th className="w-56 py-2.5 pr-3 font-bold">메모</th>
+              <th className="w-24 py-2.5 pr-3 font-bold">크롤링 승인</th>
               <th className="w-24 py-2.5 pr-4 text-right font-bold">조사일</th>
             </tr>
           </thead>
@@ -235,6 +238,23 @@ export default function CrawlCandidatesTab() {
                     placeholder="메모"
                     className="w-full rounded-lg border border-gray-200 px-2 py-1 text-[12.5px]"
                   />
+                </td>
+                <td className="py-2 pr-3">
+                  {/* 사이트 단위 승인 — 한 번 승인하면 이후 재크롤링은 검수 없이 바로 공개된다.
+                      미승인 상태에서는 수집만 되고 사이트·카톡에 노출되지 않는다. */}
+                  <button
+                    type="button"
+                    disabled={savingId === r.id || !r.career_url}
+                    onClick={() => updateRow(r.id, { crawl_approved: !r.crawl_approved })}
+                    className={
+                      "rounded-lg border px-2.5 py-1 text-[12px] font-bold disabled:opacity-40 " +
+                      (r.crawl_approved
+                        ? "border-[color:var(--brand-pink)] bg-[rgba(255,0,153,0.06)] text-[#b81f6c]"
+                        : "border-gray-200 bg-white text-gray-500")
+                    }
+                  >
+                    {r.crawl_approved ? "승인됨" : "미승인"}
+                  </button>
                 </td>
                 <td className="py-2 pr-4 text-right text-[11.5px] text-gray-400">
                   {r.researched_at ? new Date(r.researched_at).toLocaleDateString("ko-KR") : "–"}

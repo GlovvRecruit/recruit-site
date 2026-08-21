@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Monitor",
+      "WebFetch",
+      "Bash(npx tsc *)",
+      "Bash(pnpm typecheck)",
+      "Bash(pnpm build)",
+      "Bash(npm run dev)",
+      "Bash(npx eslint *)",
+      "Bash(pnpm start)",
+      "PowerShell(Get-NetTCPConnection *)",
+      "mcp__claude_ai_MetaAds__ads_library_search"
+    ]
+  }
+}

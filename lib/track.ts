@@ -3,6 +3,12 @@ export type TrackEventType =
   | "deep_scroll"
   | "alert_cta_click"
   | "onboarding_submit"
+  // 채널 추가를 신청 관문에서 뺀 뒤(2026-07-30), 어디서 이탈하는지 구분해서 보기 위한 이벤트.
+  // 이전에는 채널 추가 실패와 신청 포기가 구분되지 않아 원인 파악이 불가능했다.
+  | "onboarding_done_confirm"
+  | "channel_add_success"
+  | "channel_add_cancelled"
+  | "channel_add_error"
   | "apply_click";
 
 const VISITOR_ID_KEY = "br_visitor_id";

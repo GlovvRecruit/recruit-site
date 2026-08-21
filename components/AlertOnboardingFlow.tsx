@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import BrandJobsBrowser from "@/components/BrandJobsBrowser";
 import { JOB_CATEGORIES, type Brand, type Job, type JobCategory } from "@/lib/types";
+import { matchesInterest, INTEREST_MATCH_NOTICE } from "@/lib/interest";
 import { createClient } from "@/lib/supabase/client";
 import { followKakaoChannel, type ChannelFollowResult } from "@/lib/kakao";
 import { track } from "@/lib/track";
@@ -37,6 +38,20 @@ function brandNamesSubtitle(brand: Brand): string | null {
   return full.length > 14 ? `${full.slice(0, 12)}...` : full;
 }
 
+/**
+ * 휴대폰 번호 입력 표시용 하이픈 포맷. 사용자가 하이픈을 직접 넣어도 숫자만 남겨 다시 붙인다
+ * (01099712034 → 010-9971-2034). **DB에는 숫자만 저장**한다 — 기존 리드가 숫자로 저장돼 있어
+ * 표기가 섞이면 같은 사람이 두 리드로 갈라진다.
+ */
+function formatPhone(value: string): string {
+  const d = value.replace(/[^0-9]/g, "").slice(0, 11);
+  if (d.length <= 3) return d;
+  if (d.length <= 7) return `${d.slice(0, 3)}-${d.slice(3)}`;
+  return `${d.slice(0, 3)}-${d.slice(3, 7)}-${d.slice(7)}`;
+}
+
+const onlyDigits = (value: string) => value.replace(/[^0-9]/g, "");
+
 const STORAGE_KEY = "onboarding_subscribed";
 const EXCLUDED_JOBS_KEY = "onboarding_excluded_jobs";
 
@@ -48,7 +63,12 @@ interface StoredSubscription {
 }
 
 type FlowStep = "card" | "step1" | "step2" | "done";
-type JobFilterMode = "all" | "interested";
+type JobFilterMode = "all" | "glovv" | "interested";
+
+// 글로브를 이용하지 않는 브랜드. "글로브 이용 브랜드" 탭에서만 제외한다.
+const NON_GLOVV_BRANDS = ["에이피알", "메디큐브", "더파운더즈"];
+const normalizeBrandName = (name: string) =>
+  name.replace(/[ ()㈜]/g, "").replace("주식회사", "").toLowerCase();
 
 function readStoredSubscription(): StoredSubscription | null {
   if (typeof window === "undefined") return null;
@@ -76,6 +96,13 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
   const [flow, setFlow] = useState<FlowStep>("card");
   const [jobFilter, setJobFilter] = useState<JobFilterMode>("all");
   const [showUnsubConfirm, setShowUnsubConfirm] = useState(false);
+  // 카톡 링크로 들어왔을 때 공고 목록까지 스크롤해 주기 위한 앵커
+  const jobTabsRef = useRef<HTMLDivElement | null>(null);
+  // STEP 전환 시 카드 최상단으로 스크롤하고 STEP2에서는 번호 입력에 커서를 놓는다.
+  // (높이를 STEP1에 맞춰 늘리던 방식은 STEP2 아래에 빈 공간만 생겨서 폐기 — 2026-07-30)
+  const stepBoxRef = useRef<HTMLDivElement | null>(null);
+  const phoneInputRef = useRef<HTMLInputElement | null>(null);
+  const shouldScrollToJobsRef = useRef(false);
 
   // "내 관심 공고"에서 하트를 끈 공고는 곧바로 사라지지 않고 맨 아래로 가라앉기만 하다가,
   // 다음번에 이 탭에 다시 들어올 때 실제로 목록에서 제외된다(갑자기 카드가 사라지는 게
@@ -101,6 +128,61 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
     setSubscription(readStoredSubscription());
     setExcludedJobIds(readExcludedJobIds());
   }, []);
+
+  // 카톡 알림의 "더 많은 공고 보기"(?tab=interested&t=<토큰>)로 들어온 경우:
+  // 관심 공고 탭을 켜고, 이 브라우저에 구독 정보가 없으면 토큰으로 복원한다. 카카오톡 인앱
+  // 브라우저는 localStorage가 분리돼 있어 복원이 없으면 탭 자체가 나타나지 않는다.
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("tab") !== "interested") return;
+    setJobFilter("interested");
+    shouldScrollToJobsRef.current = true;
+
+    const token = params.get("t");
+    if (!token || readStoredSubscription()) return;
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabaseRef.current
+        .from("leads")
+        .select("phone, brand_ids, categories, created_at")
+        .eq("access_token", token)
+        .maybeSingle();
+      if (cancelled || !data) return;
+      const restored: StoredSubscription = {
+        brandIds: (data.brand_ids as string[]) ?? [],
+        categories: (data.categories as string[]) ?? [],
+        phone: data.phone as string,
+        createdAt: (data.created_at as string) ?? new Date().toISOString(),
+      };
+      setSubscription(restored);
+      try {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(restored));
+      } catch {
+        // localStorage 접근 실패는 무시 — 이 세션 동안은 상태로만 유지된다.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // 탭이 실제로 렌더된 뒤(구독 복원 완료 후) 공고 목록으로 스크롤한다.
+  useEffect(() => {
+    if (!shouldScrollToJobsRef.current || !subscription || !jobTabsRef.current) return;
+    shouldScrollToJobsRef.current = false;
+    jobTabsRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, [subscription]);
+
+  useEffect(() => {
+    if (flow !== "step1" && flow !== "step2") return;
+    // 단계가 바뀌면 카드 위쪽이 보이게 올려준다 — 버튼만 화면에 남아 어디를 눌러야 할지
+    // 헷갈리는 상황을 막는다.
+    stepBoxRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (flow !== "step2") return;
+    // 스크롤이 끝난 뒤 번호 입력에 커서를 놓아 바로 타이핑할 수 있게 한다.
+    const timer = setTimeout(() => phoneInputRef.current?.focus(), 400);
+    return () => clearTimeout(timer);
+  }, [flow]);
 
   useEffect(() => {
     pendingUnlikedRef.current = pendingUnlikedIds;
@@ -198,31 +280,52 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
       ? "다음"
       : `브랜드 ${brandIds.size}개 · 직무 ${categories.size}개로 다음`;
 
+  /** 완료 화면에서 채널 추가. 성공하면 리드를 카톡 발송 대상으로 바꾼다. */
+  async function handleAddChannel() {
+    setChannelStatus("checking");
+    const result = await followKakaoChannel();
+    setChannelStatus(result);
+    track(
+      "/brand-jobs",
+      result === "added"
+        ? "channel_add_success"
+        : result === "cancelled"
+          ? "channel_add_cancelled"
+          : "channel_add_error"
+    );
+    if (result !== "added") return;
+    const phoneToUpdate = onlyDigits(subscription?.phone ?? phone);
+    if (!phoneToUpdate) return;
+    await supabaseRef.current
+      .from("leads")
+      .update({ is_channel_friend: true })
+      .eq("phone", phoneToUpdate);
+    // 추가가 끝나면 "알림 받는 중" 카드로 바로 넘긴다.
+    track("/brand-jobs", "onboarding_done_confirm");
+    setFlow("card");
+  }
+
   function enterStep1() {
     track("/brand-jobs", "alert_cta_click");
     setFlow("step1");
   }
 
   async function handleStep2Submit() {
-    const digits = phone.replace(/[^0-9]/g, "");
+    const digits = onlyDigits(phone);
     if (digits.length < 10) {
       alert("휴대폰 번호를 정확히 입력해 주세요.");
       return;
     }
     if (!marketingConsent) {
-      alert("공고 알림을 받으려면 마케팅 정보 수신에 동의해 주세요.");
+      alert("공고 알림을 받으려면 채용 공고 수신에 동의해 주세요.");
       return;
     }
 
-    setChannelStatus("checking");
-    const result = await followKakaoChannel();
-    setChannelStatus(result);
-
-    if (result !== "added") {
-      // 취소/에러는 별도 모달 없이 같은 화면에서 재시도할 수 있게 인라인으로만 보여준다.
-      return;
-    }
-
+    // 카카오 채널 추가를 **신청의 관문으로 두지 않는다**(2026-07-30 변경). 채널 추가 팝업은
+    // 인앱 브라우저·팝업 차단·SDK 미로드로 실패하는 경우가 많아, 신청 의사를 밝힌 사람까지
+    // 잃고 있었다(전환 58% → 8%). 리드를 먼저 저장하고 채널 추가는 완료 화면에서 안내한다.
+    // 채널을 추가하지 않은 사람은 is_channel_friend=false로 남고 카톡 발송 대상에서 빠진다
+    // (문자 폴백은 별도 작업).
     track("/brand-jobs", "onboarding_submit");
     setSubmitting(true);
     try {
@@ -232,29 +335,29 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
         categories: [...categories],
         marketing_opt_in: marketingConsent,
         unsubscribed: false,
-        is_channel_friend: true,
+        is_channel_friend: false,
       };
       const { data: existing } = await supabase
         .from("leads")
         .select("id")
-        .eq("phone", phone)
+        .eq("phone", digits)
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (existing) {
         await supabase.from("leads").update(leadFields).eq("id", existing.id);
       } else {
-        await supabase.from("leads").insert({ phone, ...leadFields });
+        await supabase.from("leads").insert({ phone: digits, ...leadFields });
       }
       if (moreCompanyRequests.length > 0) {
         await supabase
           .from("brand_requests")
-          .insert(moreCompanyRequests.map((name) => ({ requested_name: name, phone })));
+          .insert(moreCompanyRequests.map((name) => ({ requested_name: name, phone: digits })));
       }
       const stored: StoredSubscription = {
         brandIds: [...brandIds],
         categories: [...categories],
-        phone,
+        phone: digits,
         createdAt: new Date().toISOString(),
       };
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(stored));
@@ -272,7 +375,7 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
     if (subscription) {
       setBrandIds(new Set(subscription.brandIds));
       setCategories(new Set(subscription.categories as JobCategory[]));
-      setPhone(subscription.phone);
+      setPhone(formatPhone(subscription.phone));
     }
     setFlow("step1");
   }
@@ -283,7 +386,7 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
         await supabaseRef.current
           .from("leads")
           .update({ unsubscribed: true })
-          .eq("phone", subscription.phone);
+          .eq("phone", onlyDigits(subscription.phone));
       } catch (e) {
         console.error("[onboarding] unsubscribe failed:", e);
       }
@@ -303,19 +406,31 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
     setFlow("card");
   }
 
+  const nonGlovvBrandIds = useMemo(() => {
+    const ids = new Set<string>();
+    for (const b of brands) {
+      const names = [b.name, ...(b.brandNames ?? [])].map(normalizeBrandName);
+      if (NON_GLOVV_BRANDS.some((x) => names.some((n) => n.includes(normalizeBrandName(x))))) {
+        ids.add(b.id);
+      }
+    }
+    return ids;
+  }, [brands]);
+
   const visibleJobs = useMemo(() => {
+    if (jobFilter === "glovv") return jobs.filter((j) => !nonGlovvBrandIds.has(j.brandId));
     if (jobFilter === "all" || !subscription) return jobs;
-    const brandSet = new Set(subscription.brandIds);
-    const categorySet = new Set(subscription.categories);
     const matched = jobs.filter(
-      (j) => (brandSet.has(j.brandId) || categorySet.has(j.jobCategory)) && !excludedJobIds.has(j.id)
+      (j) =>
+        matchesInterest(j.brandId, j.jobCategory, subscription.brandIds, subscription.categories) &&
+        !excludedJobIds.has(j.id)
     );
     return [...matched].sort((a, b) => {
       const aPending = pendingUnlikedIds.has(a.id) ? 1 : 0;
       const bPending = pendingUnlikedIds.has(b.id) ? 1 : 0;
       return aPending - bPending;
     });
-  }, [jobFilter, subscription, jobs, excludedJobIds, pendingUnlikedIds]);
+  }, [jobFilter, subscription, jobs, excludedJobIds, pendingUnlikedIds, nonGlovvBrandIds]);
 
   const likedJobIds = useMemo(() => {
     if (jobFilter !== "interested") return undefined;
@@ -325,9 +440,11 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
   return (
     <>
       <div
-        className={
-          "mx-auto w-full max-w-[480px] " + (flow === "step2" ? "mb-20" : "mb-9")
-        }
+        ref={stepBoxRef}
+        // 아래 "지금 열린 공고" 섹션과의 간격은 단계와 무관하게 같아야 한다(STEP2만 mb-20이면
+        // 44px 더 벌어져 화면이 다르게 보인다 — 2026-07-30 지적).
+        // scroll-mt는 상단 고정 네비 높이만큼 스크롤 위치를 내려 제목이 가려지지 않게 한다.
+        className="mx-auto mb-9 w-full max-w-[480px] scroll-mt-28"
       >
         {flow === "card" && (
           <section className="card-shadow rounded-2xl border border-gray-200 bg-white p-6">
@@ -601,7 +718,9 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
               )}
             </div>
 
-            <h2 className="mb-2.5 mt-7 text-sm font-extrabold text-gray-700">관심 직무</h2>
+            <h2 className="mb-1.5 mt-7 text-sm font-extrabold text-gray-700">관심 직무</h2>
+            {/* 합집합 → 교집합으로 바뀌었으므로(2026-07-30) 무엇이 오는지 예시로 설명한다. */}
+            <p className="mb-3 text-[12.5px] leading-relaxed text-gray-500">{INTEREST_MATCH_NOTICE}</p>
             <div className="flex flex-wrap gap-2.5">
               {JOB_CATEGORIES.map((category) => {
                 const active = categories.has(category);
@@ -660,10 +779,10 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
               STEP 2 / 2
             </p>
             <h1 className="mb-1.5 mt-1 text-2xl font-extrabold tracking-tight">
-              카카오톡 채널을 추가하면 끝이에요
+              핸드폰 번호를 입력해주세요
             </h1>
             <p className="mb-6 text-sm text-gray-500">
-              별도 가입 없이, 채널 추가와 알림 신청이 한 번에 처리돼요.
+              해당 핸드폰 번호로 카톡 알림을 보내드려요.
             </p>
 
             <div className="grid gap-4">
@@ -672,9 +791,12 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
                   휴대폰 번호 <span className="text-[color:var(--brand-pink)]">*</span>
                 </span>
                 <input
+                  ref={phoneInputRef}
                   type="tel"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(formatPhone(e.target.value))}
+                  inputMode="numeric"
+                  maxLength={13}
                   placeholder="010-1234-5678"
                   className="w-full rounded-xl border border-gray-200 bg-white px-3.5 py-3 text-[15px] focus:border-[color:var(--brand-pink)] focus:shadow-[0_0_0_3px_rgba(255,0,153,0.1)] focus:outline-none"
                 />
@@ -695,28 +817,13 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
                   {marketingConsent && <i className="ph-bold ph-check text-[13px] text-white" />}
                 </span>
                 <span className="flex-1">
-                  <span className="block text-sm font-bold">마케팅 정보 수신 동의 (필수)</span>
+                  <span className="block text-sm font-bold">채용 공고 수신 동의 (필수)</span>
                   <span className="mt-0.5 block text-xs text-gray-400">
                     신규 공고 알림 발송을 위해 필요해요
                   </span>
                 </span>
               </button>
 
-              <p className="m-0 text-[13px] font-semibold text-red-500">
-                * 주의 : 카톡 정책상 카카오톡 채널을 추가해야만 공고를 받아볼 수 있습니다.
-              </p>
-
-              {channelStatus === "cancelled" && (
-                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3.5 text-[13px] text-red-600">
-                  채널 추가가 취소됐어요. 채널을 추가해야 카톡으로 공고를 보내드릴 수 있어요. 다시
-                  시도해 주세요.
-                </div>
-              )}
-              {channelStatus === "error" && (
-                <div className="rounded-xl border border-red-100 bg-red-50 px-4 py-3.5 text-[13px] text-red-600">
-                  카카오 연결에 문제가 생겼어요. 네트워크 상태를 확인하고 다시 시도해 주세요.
-                </div>
-              )}
             </div>
 
             <div className="mt-6 flex gap-2.5">
@@ -729,14 +836,14 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
               </button>
               <button
                 type="button"
-                disabled={channelStatus === "checking" || submitting}
+                disabled={submitting}
                 onClick={handleStep2Submit}
-                className="flex-1 rounded-xl py-3.5 text-[15px] font-extrabold disabled:opacity-60"
-                style={{ background: "var(--kakao-yellow)", color: "var(--kakao-brown)" }}
+                className="flex-1 rounded-xl py-3.5 text-[15px] font-extrabold text-white disabled:opacity-60"
+                style={{ background: "var(--gray-900)" }}
               >
-                {channelStatus === "checking" || submitting
+                {submitting
                   ? "처리 중..."
-                  : "카카오톡 채널 추가하고 신청 완료하기"}
+                  : "신청 완료하기"}
               </button>
             </div>
           </>
@@ -751,24 +858,45 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
               <i className="ph-bold ph-check text-2xl text-white" />
             </div>
             <h1 className="mb-1.5 text-xl font-extrabold tracking-tight">알림 신청 완료</h1>
-            <p className="mb-5 text-sm text-gray-500">
+            <p className="mb-4 text-sm text-gray-500">
               브랜드 {subscription.brandIds.length}개 · 직무 {subscription.categories.length}개의
-              신규 공고가 있으면 카톡으로 보내드려요.
+              신규 공고가 있으면 알려드려요.
             </p>
+
+            {/* 채널 추가는 신청을 막지 않고 여기서 안내만 한다(추가 안 하면 문자로 2회 요청).
+                별도 "확인" 버튼은 두지 않는다 — 채널을 추가하면 아래 "알림 받는 중" 카드로 바로
+                넘어가므로 누를 이유가 없다(2026-07-30 지적). */}
+            <div className="mb-4 rounded-xl border border-gray-200 bg-gray-50 px-4 py-4">
+              <p className="m-0 text-[13.5px] font-bold leading-relaxed text-gray-700">
+                채용 공고를 <b className="text-[color:var(--brand-pink)]">카카오톡</b>으로 받으려면
+                <br />
+                카카오톡 채널 친구 추가를 하셔야 가능해요.
+              </p>
+              <p className="m-0 mt-2 text-[12.5px] text-gray-500">
+                추가하지 않으시면 문자로 2회 추가 요청드려요.
+              </p>
+              {(channelStatus === "cancelled" || channelStatus === "error") && (
+                <p className="m-0 mt-2.5 text-[12.5px] text-gray-500">
+                  채널 추가가 완료되지 않았어요. 다시 시도하거나, 나중에 문자로 안내드릴게요.
+                </p>
+              )}
+            </div>
+
             <button
               type="button"
-              onClick={() => setFlow("card")}
-              className="w-full rounded-xl py-3.5 text-[15px] font-extrabold text-white"
-              style={{ background: "var(--gray-900)" }}
+              disabled={channelStatus === "checking"}
+              onClick={handleAddChannel}
+              className="w-full rounded-xl py-3.5 text-[15px] font-extrabold disabled:opacity-60"
+              style={{ background: "var(--kakao-yellow)", color: "var(--kakao-brown)" }}
             >
-              확인
+              {channelStatus === "checking" ? "처리 중..." : "앤마들린 카카오톡 채널 추가하기"}
             </button>
           </section>
         )}
       </div>
 
       {subscription && (
-        <div className="mb-3.5 flex gap-2">
+        <div ref={jobTabsRef} className="mb-3.5 flex gap-2">
           <button
             type="button"
             onClick={() => setJobFilter("all")}
@@ -780,6 +908,18 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
             }
           >
             전체
+          </button>
+          <button
+            type="button"
+            onClick={() => setJobFilter("glovv")}
+            className={
+              "rounded-full border px-4 py-2 text-[13px] font-bold " +
+              (jobFilter === "glovv"
+                ? "border-gray-900 bg-gray-900 text-white"
+                : "border-gray-200 bg-white text-gray-700")
+            }
+          >
+            글로브 이용 브랜드
           </button>
           <button
             type="button"

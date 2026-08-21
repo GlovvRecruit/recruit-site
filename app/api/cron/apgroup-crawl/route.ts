@@ -1,4 +1,5 @@
 import { ingestCrawledOpenings, type CrawledOpening } from "@/lib/crawler/ingest";
+import { parseDeadline } from "@/lib/crawler/deadline";
 
 const SEARCH_URL =
   "https://careers.apgroup.com/search/?createNewAlert=false&q=&optionsFacetsDD_customfield1=&optionsFacetsDD_customfield2=&optionsFacetsDD_shifttype=";
@@ -121,6 +122,8 @@ export async function GET(request: Request) {
       sourceUrl: detailUrl,
       description,
       descriptionImages: null,
+      // 게시판형 자사 채용 페이지는 마감일 표기가 제각각이라 확실히 읽히는 것만 잡는다.
+      deadline: parseDeadline([tile.title, description].filter(Boolean).join(" ")),
     });
   }
 

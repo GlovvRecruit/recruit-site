@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import BrandJobsBrowser from "@/components/BrandJobsBrowser";
 import { JOB_CATEGORIES, type Brand, type Job, type JobCategory } from "@/lib/types";
+import { matchesInterest, INTEREST_MATCH_NOTICE } from "@/lib/interest";
 import { createClient } from "@/lib/supabase/client";
 import { followKakaoChannel, type ChannelFollowResult } from "@/lib/kakao";
 
@@ -283,10 +284,10 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
 
   const visibleJobs = useMemo(() => {
     if (jobFilter === "all" || !subscription) return jobs;
-    const brandSet = new Set(subscription.brandIds);
-    const categorySet = new Set(subscription.categories);
     const matched = jobs.filter(
-      (j) => (brandSet.has(j.brandId) || categorySet.has(j.jobCategory)) && !excludedJobIds.has(j.id)
+      (j) =>
+        matchesInterest(j.brandId, j.jobCategory, subscription.brandIds, subscription.categories) &&
+        !excludedJobIds.has(j.id)
     );
     return [...matched].sort((a, b) => {
       const aPending = pendingUnlikedIds.has(a.id) ? 1 : 0;
@@ -579,7 +580,9 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
               )}
             </div>
 
-            <h2 className="mb-2.5 mt-7 text-sm font-extrabold text-gray-700">관심 직무</h2>
+            <h2 className="mb-1.5 mt-7 text-sm font-extrabold text-gray-700">관심 직무</h2>
+            {/* 합집합 → 교집합으로 바뀌었으므로(2026-07-30) 무엇이 오는지 예시로 설명한다. */}
+            <p className="mb-3 text-[12.5px] leading-relaxed text-gray-500">{INTEREST_MATCH_NOTICE}</p>
             <div className="flex flex-wrap gap-2.5">
               {JOB_CATEGORIES.map((category) => {
                 const active = categories.has(category);
@@ -673,7 +676,7 @@ export default function TestAlertFlow({ brands, jobs }: { brands: Brand[]; jobs:
                   {marketingConsent && <i className="ph-bold ph-check text-[13px] text-white" />}
                 </span>
                 <span className="flex-1">
-                  <span className="block text-sm font-bold">마케팅 정보 수신 동의 (필수)</span>
+                  <span className="block text-sm font-bold">채용 공고 수신 동의 (필수)</span>
                   <span className="mt-0.5 block text-xs text-gray-400">
                     신규 공고 알림 발송을 위해 필요해요
                   </span>

@@ -30,6 +30,11 @@ export interface Job {
   sourceUrl: string;
   status: "open" | "closed";
   createdAt: string;
+  /**
+   * 공고 마감일. 크롤링 원본이 마감일을 제공하지 않으면(게시판형 자사 채용 페이지는 "채용시
+   * 마감"이 많다) null이고, UI에서는 "상시"로 표시하며 마감 임박순 정렬에서 맨 뒤로 보낸다.
+   */
+  deadline?: string | null;
 }
 
 export type EmploymentType = "intern" | "fulltime";

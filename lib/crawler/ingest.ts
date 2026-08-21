@@ -12,26 +12,66 @@ export interface CrawledOpening {
   sourceUrl: string;
   description?: string | null;
   descriptionImages?: string[] | null;
+  /** 공고 마감일(ISO). 원본이 마감일을 제공하지 않으면 null — "상시"로 취급한다. */
+  deadline?: string | null;
+}
+
+/**
+ * 공고 **제목**만 보고 직무를 판별한다. 제목에 직무가 분명히 적혀 있으면 플랫폼이 준 카테고리보다
+ * 이쪽을 우선한다 — 실제로 "온라인 MD(경력)"이 플랫폼 카테고리("글로벌세일즈") 때문에 세일즈로
+ * 분류되는 문제가 있었다(2026-08-11 지적).
+ *
+ * 약어도 함께 본다: AMD(어시스턴트 MD)·VMD → MD, ABM(어시스턴트 BM) → BM·PM.
+ * 확실하지 않으면 null을 돌려 플랫폼 카테고리·본문 추정에 맡긴다.
+ */
+function categoryFromTitle(title: string): string | null {
+  // 앞뒤가 영문자가 아닌 위치를 단어 경계로 본다(정규식 이스케이프 없이 표현).
+  const t = " " + title.toLowerCase() + " ";
+  const word = (w: string) => new RegExp("(^|[^a-z])(" + w + ")([^a-z]|$)").test(t);
+  if (word("a?md|vmd") || t.includes("엠디")) return "MD";
+  if (word("a?bm|pm") || /브랜드 *매니저|상품 *기획|사업 *기획|프로덕트 *매니저/.test(t)) {
+    return "BM·PM";
+  }
+  if (/marketing|marketer|마케팅|마케터|퍼포먼스/.test(t)) return "마케팅";
+  if (/영업|세일즈|sales|채널 *관리|바이어/.test(t)) return "세일즈";
+  if (word("scm") || /운영|operation|물류|고객 *(지원|경험)/.test(t)) return "운영";
+  return null;
 }
 
 function guessCategory(raw: string | null, title: string): string {
-  const text = `${raw ?? ""} ${title}`.toLowerCase();
-  if (/\bmd\b/.test(text)) return "MD";
-  if (/(marketing|marketer|마케팅|마케터)/.test(text)) return "마케팅";
-  if (/(\bbm\b|기획)/.test(text)) return "BM·PM";
-  if (/(operation|운영|oper|customer service|customer experience|\bcs\b)/.test(text)) return "운영";
-  if (/(영업|세일즈|sales)/.test(text)) return "세일즈";
+  const text = " " + `${raw ?? ""} ${title}`.toLowerCase() + " ";
+  const word = (w: string) => new RegExp("(^|[^a-z])(" + w + ")([^a-z]|$)").test(text);
+  if (word("a?md|vmd") || text.includes("엠디")) return "MD";
+  if (/marketing|marketer|마케팅|마케터/.test(text)) return "마케팅";
+  if (word("a?bm|pm") || text.includes("기획")) return "BM·PM";
+  if (word("cs") || /operation|운영|customer service|customer experience/.test(text)) return "운영";
+  if (/영업|세일즈|sales/.test(text)) return "세일즈";
   return "기타";
 }
 
-export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId: string | null) {
+/**
+ * 수집 결과를 staging에 적재하고, 공개 가능한 것만 jobs로 발행한다.
+ *
+ * options.publish === false 이면 **staging에만 적재하고 절대 공개하지 않는다**(사람이 검수해
+ * review_status='approved'로 표시한 것만 공개된다). 조사 자동화로 붙인 대상은 잘못된 회사가
+ * 섞일 수 있어(광고대행사·동명 업체) 검수 전 공개는 사고다 — 2026-07-30에 실제로 발생했다.
+ */
+export async function ingestCrawledOpenings(
+  items: CrawledOpening[],
+  crawlRunId: string | null,
+  options: { publish?: boolean; publishBrands?: string[] } = {}
+) {
+  const autoPublish = options.publish !== false;
+  // 사이트 단위로 한 번 승인되면 이후 재크롤링은 검수 없이 그대로 공개된다(2026-07-30 결정).
+  // 매번 공고를 검수하는 건 대량 신규 등록 때만 필요하다.
+  const approvedBrands = options.publishBrands ? new Set(options.publishBrands) : null;
   const supabase = createAdminClient();
   if (!supabase) {
     return { error: "supabase not configured", status: 500 } as const;
   }
 
   const now = new Date().toISOString();
-  const rows = items
+  const rawRows = items
     .filter((item) => item.sourceUrl && item.title && item.brandName)
     .map((item) => ({
       crawl_run_id: crawlRunId,
@@ -45,8 +85,14 @@ export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId:
       source_url: item.sourceUrl,
       description: item.description ?? null,
       description_images: item.descriptionImages ?? null,
+      deadline: item.deadline ?? null,
       last_seen_at: now,
     }));
+
+  // 같은 source_url이 한 배치에 두 번 들어오면 Postgres가 upsert를 거부한다
+  // ("ON CONFLICT DO UPDATE command cannot affect row a second time"). 실제로 한 그리팅
+  // 워크스페이스를 두 브랜드명이 공유하는 경우(달바 / 달바(재팬))가 있어서 먼저 걸러낸다.
+  const rows = Array.from(new Map(rawRows.map((r) => [r.source_url, r])).values());
 
   if (rows.length === 0) {
     return { ok: true, upserted: 0, published: 0, staleJobsDeleted: 0, staleStagingDeleted: 0 } as const;
@@ -80,7 +126,11 @@ export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId:
 
   const publishRows = rows.filter((r) => {
     const status = statusByUrl.get(r.source_url);
-    return status !== "hidden" && status !== "edited";
+    if (status === "hidden" || status === "edited") return false;
+    if (autoPublish) return true;
+    // 승인된 사이트의 공고는 그대로 공개, 그 외에는 개별 승인된 것만 공개.
+    if (approvedBrands?.has(r.brand_name)) return true;
+    return status === "approved";
   });
 
   if (publishRows.length > 0) {
@@ -98,14 +148,18 @@ export async function ingestCrawledOpenings(items: CrawledOpening[], crawlRunId:
       const jobRows = publishRows.map((r) => ({
         brand_id: brandIdByName.get(r.brand_name),
         title: r.title,
-        job_category: JOB_CATEGORIES.includes(r.job_category as (typeof JOB_CATEGORIES)[number])
-          ? r.job_category
-          : guessCategory(r.job_category, r.title),
+        // 제목 판별 → 플랫폼 카테고리 → 본문 추정 순.
+        job_category:
+          categoryFromTitle(r.title) ??
+          (JOB_CATEGORIES.includes(r.job_category as (typeof JOB_CATEGORIES)[number])
+            ? r.job_category
+            : guessCategory(r.job_category, r.title)),
         career_level: r.career_level,
         region: r.region,
         source_url: r.source_url,
         description: r.description,
         description_images: r.description_images,
+        deadline: r.deadline,
         status: "open",
       }));
       await supabase.from("jobs").upsert(jobRows, { onConflict: "source_url" });
