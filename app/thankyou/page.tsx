@@ -20,10 +20,12 @@ export const metadata: Metadata = {
 
 export default function ThankYouPage() {
   return (
-    <div className="min-h-screen bg-gray-50">
+    // 내용이 짧은 페이지라 그냥 두면 푸터가 화면 중간에 뜬다. 세로 flex로 만들어
+    // main이 남은 높이를 채우게 하고 푸터를 항상 화면 맨 아래로 밀어낸다.
+    <div className="flex min-h-screen flex-col bg-gray-50">
       <SiteNav />
 
-      <main className="mx-auto flex max-w-[560px] flex-col items-center px-5 pb-[90px] pt-[72px] text-center">
+      <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col items-center px-5 pb-[60px] pt-[72px] text-center">
         <div
           className="mb-6 grid h-[72px] w-[72px] place-items-center rounded-full text-[34px] text-white"
           style={{ background: "var(--brand-gradient)" }}
