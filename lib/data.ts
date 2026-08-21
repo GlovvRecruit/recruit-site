@@ -24,11 +24,23 @@ export async function getBrands(): Promise<Brand[]> {
   if (!hasSupabaseEnv) return sampleBrands;
   try {
     const supabase = await createClient();
-    const [{ data, error }, { data: openJobs }] = await Promise.all([
-      supabase.from("brands").select("*").eq("is_active", true).order("name"),
-      supabase.from("jobs").select("brand_id").eq("status", "open"),
-    ]);
-    const brandIdsWithJobs = new Set((openJobs ?? []).map((j) => j.brand_id as string));
+    const { data, error } = await supabase
+      .from("brands")
+      .select("*")
+      .eq("is_active", true)
+      .order("name");
+    // 공고가 1,000건을 넘으면 한 번의 조회로는 다 못 읽어 일부 브랜드가 목록에서 빠진다.
+    const brandIdsWithJobs = new Set<string>();
+    for (let from = 0; ; from += 1000) {
+      const { data: page } = await supabase
+        .from("jobs")
+        .select("brand_id")
+        .eq("status", "open")
+        .range(from, from + 999);
+      if (!page || page.length === 0) break;
+      page.forEach((j) => brandIdsWithJobs.add(j.brand_id as string));
+      if (page.length < 1000) break;
+    }
     if (error || !data || data.length === 0) return sampleBrands;
     const visible = data.filter((b) => brandIdsWithJobs.has(b.id));
     if (visible.length === 0) return sampleBrands;
@@ -108,16 +120,30 @@ function mapJobSummaryRow(j: {
   };
 }
 
+/**
+ * 공개 공고 전체. **Supabase는 한 번에 1,000행까지만 돌려주므로** range로 나눠 끝까지 읽는다.
+ * (공고가 1,000건을 넘긴 뒤 목록이 1,000에서 멈춰 보이던 원인 — 2026-08-21)
+ */
 export async function getJobsSummary(): Promise<Job[]> {
   if (!hasSupabaseEnv) return sampleJobs;
   try {
     const supabase = await createClient();
-    const { data, error } = await supabase
-      .from("jobs")
-      .select(JOB_SUMMARY_COLUMNS)
-      .eq("status", "open")
-      .order("created_at", { ascending: false });
-    if (error || !data || data.length === 0) return sampleJobs;
+    const PAGE = 1000;
+    const rows: Parameters<typeof mapJobSummaryRow>[0][] = [];
+    for (let from = 0; ; from += PAGE) {
+      const { data: page, error: pageError } = await supabase
+        .from("jobs")
+        .select(JOB_SUMMARY_COLUMNS)
+        .eq("status", "open")
+        .order("created_at", { ascending: false })
+        .range(from, from + PAGE - 1);
+      if (pageError) break;
+      if (!page || page.length === 0) break;
+      rows.push(...(page as Parameters<typeof mapJobSummaryRow>[0][]));
+      if (page.length < PAGE) break;
+    }
+    if (rows.length === 0) return sampleJobs;
+    const data = rows;
     return data.map(mapJobSummaryRow);
   } catch {
     return sampleJobs;
