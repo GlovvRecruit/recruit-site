@@ -387,7 +387,8 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
             </p>
             <ApplyCtaButton
               jobTitle={job.title}
-              className="inline-flex flex-none cursor-pointer items-center gap-1.5 rounded-[10px] border border-gray-900 bg-white px-4 py-2 text-[13.5px] font-extrabold text-gray-900"
+              className="inline-flex flex-none cursor-pointer items-center gap-1.5 rounded-[10px] border-0 px-4 py-2 text-[13.5px] font-extrabold text-white"
+              style={{ background: "var(--brand-gradient)" }}
             >
               이력서 없이도 3분 이내 지원하기 <i className="ph-bold ph-arrow-right" />
             </ApplyCtaButton>
