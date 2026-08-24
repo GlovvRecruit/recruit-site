@@ -107,7 +107,9 @@ function parseBenefitItems(text?: string | null): { title: string; desc: string 
     .filter((v): v is { title: string; desc: string } => !!v && !!v.title && !!v.desc);
 }
 
-function buildSections(job: CareersJob) {
+type JobSection = { title: string; items: string[]; note?: string };
+
+function buildSections(job: CareersJob): JobSection[] {
   const hasCustomSections = !!(
     job.responsibilities ||
     job.requirements ||
@@ -121,7 +123,16 @@ function buildSections(job: CareersJob) {
   // 급여는 히어로에서 단독 강조하지 않고 이 섹션 안에서 다른 혜택과 함께 읽히게 한다.
   return [
     { title: "근무 조건·혜택", items: splitLines(job.benefits) },
-    { title: "이런 일을 해요", items: splitLines(job.responsibilities) },
+    {
+      title: "이런 일을 해요",
+      items: splitLines(job.responsibilities),
+      // 인턴은 초기에 운영 업무 비중이 크다. 마케팅 업무를 기대하고 지원했다가 어긋나는 일을
+      // 줄이려고 지원 전에 미리 알린다(2026-08-24 요청).
+      note:
+        job.employmentType === "intern"
+          ? "초기 3개월은 운영 업무 위주로 진행돼요. 마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요."
+          : undefined,
+    },
     { title: "이런 분을 찾아요", items: splitLines(job.requirements) },
     { title: "이런 분이면 더 좋아요", items: splitLines(job.niceToHaves) },
   ].filter((s) => s.items.length > 0);
@@ -424,6 +435,15 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                   </li>
                 ))}
               </ul>
+              {sec.note && (
+                <p
+                  className="mt-4 mb-0 flex items-start gap-2 rounded-xl border p-[13px] text-[13.5px] leading-relaxed text-gray-500"
+                  style={{ background: "rgba(43,127,255,.06)", borderColor: "rgba(43,127,255,.16)" }}
+                >
+                  <i className="ph-bold ph-info mt-0.5 flex-none text-[color:var(--info)]" />
+                  <span>{sec.note}</span>
+                </p>
+              )}
             </div>
           ))}
         </section>

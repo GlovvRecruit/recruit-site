@@ -92,7 +92,7 @@ export default async function ForInternsPage() {
           <span className="brand-gradient-text">글로브 이용 브랜드 공고</span>
         </h1>
         <p className="mb-7 max-w-[600px] text-[15px] leading-relaxed text-gray-500">
-          글로브/플릭스 뷰티 인턴 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
+          글로브/플릭스 뷰티 전환형 인턴 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
           <br />
           <b className="text-gray-700">
             글로브/플릭스 대표가 직접 추천서를 작성해 해당 브랜드에 전달해요.

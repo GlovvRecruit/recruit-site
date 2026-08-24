@@ -151,7 +151,7 @@ export default function JobsTab() {
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            placeholder="예: 글로브 뷰티 인턴"
+            placeholder="예: 글로브/플릭스 뷰티 전환형 인턴"
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
           />
         </label>

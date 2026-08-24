@@ -123,7 +123,7 @@ env가 비어 있으면 "Supabase가 아직 연결되지 않았어요" 안내 �
   수동 배포함. push할 때마다 자동 배포하려면 vercel.com → 계정 설정 → Login Connections에서
   GitHub 연결 필요(사용자가 직접, 인터랙티브 OAuth라 CLI로 대신할 수 없음).
 - [x] Tally 지원서 폼 연결 (`RGzKbK`) — 2026-07-20
-- [x] 자사 채용 공고(글로브 뷰티 인턴) 실 데이터 입력 — 2026-07-20, `careers_jobs`에 1건 seed됨
+- [x] 자사 채용 공고(글로브/플릭스 뷰티 전환형 인턴) 실 데이터 입력 — 2026-07-20, `careers_jobs`에 1건 seed됨
 - [x] Tally 웹훅 → `career_applications` 자동 적재 코드 작성 + `SUPABASE_SERVICE_ROLE_KEY` 배포 — 2026-07-20.
   **단, Tally 쪽 웹훅 등록은 사용자가 직접 해야 함**: Tally 폼(RGzKbK) → Settings → Integrations →
   Webhooks → URL `https://beauty-recruit.vercel.app/api/tally-webhook` 추가. 이거 안 하면

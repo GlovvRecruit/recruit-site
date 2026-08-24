@@ -5,7 +5,7 @@ import type { CareersJob, MediaLink, InsightLink } from "@/lib/types";
 export const sampleCareersJobs: CareersJob[] = [
   {
     id: "c1",
-    title: "글로브 뷰티 인턴",
+    title: "글로브/플릭스 뷰티 전환형 인턴",
     tag: "인턴",
     employmentType: "intern",
     summary:
