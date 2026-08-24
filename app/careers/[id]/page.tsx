@@ -536,7 +536,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                       {idx > 0 && (
                         <i className="ph-bold ph-caret-right self-center text-[13px] text-gray-300" />
                       )}
-                      <div className="max-w-[200px] rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5">
+                      <div className="grow rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5 text-center">
                         <div className="text-[14px] font-extrabold text-gray-900">{step.label}</div>
                         {step.note && (
                           <div className="mt-0.5 text-[11.5px] leading-snug text-gray-400">
@@ -590,7 +590,11 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
             <div className="mb-[52px] rounded-2xl border border-gray-200 bg-white p-7">
               <div className="mb-1.5 flex items-baseline justify-between text-xs text-gray-400">
                 <span>인턴</span>
-                <span>1년 차</span>
+                <span className="inline-flex items-center gap-1.5">
+                  1년 차
+                  <i className="ph-bold ph-check text-[13px] text-[color:var(--brand-pink)]" />
+                  <b className="brand-gradient-text text-[13px] font-extrabold">전환 평가</b>
+                </span>
               </div>
               <div className="mb-2.5 flex h-[46px] w-full overflow-hidden rounded-[10px]">
                 <div
