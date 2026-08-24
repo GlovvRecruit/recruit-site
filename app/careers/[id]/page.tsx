@@ -123,6 +123,31 @@ const INTERN_HIRING_FLOW: JobStep[] = [
 ];
 
 /**
+ * 안내 문구 속 `__강조__` 구간에 노란 밑줄을 긋는다. 빨간 배경 위에서 한 문장만
+ * 도드라지게 하려는 것이라 색이 아니라 밑줄로 표시한다.
+ */
+function renderUnderline(text: string) {
+  return text.split("__").map((part, i) =>
+    i % 2 === 1 ? (
+      <span
+        key={i}
+        className="font-extrabold"
+        style={{
+          textDecorationLine: "underline",
+          textDecorationColor: "var(--highlight-yellow)",
+          textDecorationThickness: "3px",
+          textUnderlineOffset: "4px",
+        }}
+      >
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+}
+
+/**
  * 체크리스트 항목 속 `**강조**` 구간을 글로브 그라데이션 텍스트로 렌더한다.
  * admin에서 문구만 고쳐도 강조를 줄 수 있도록 마크다운식 표기를 쓴다.
  */
@@ -162,7 +187,7 @@ function buildSections(job: CareersJob): JobSection[] {
           ? [
               "인턴 포지션인만큼 바로 퍼포먼스를 내는 업무에 투입되진 않아요.",
               "증명할수록 커리어 성장에 필요한 업무를 많이 맡게돼요.",
-              "또한, 초기 3개월은 운영 업무 위주로 진행돼요. 마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요.",
+              "또한, 초기 3개월은 운영 업무 위주로 진행돼요. __마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요.__",
             ]
           : undefined,
     },
@@ -542,7 +567,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                   <div className="grid gap-1">
                     {sec.note.map((line) => (
                       <p key={line} className="m-0">
-                        {line}
+                        {renderUnderline(line)}
                       </p>
                     ))}
                   </div>
