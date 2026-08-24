@@ -56,8 +56,9 @@
   (`supabase/migrations/0001_init.sql` + `0002_tally_webhook.sql` + `0003_careers_job_sections.sql` +
   `0004_careers_job_full_content.sql` + `0005_resume_storage.sql`, `exam_attempts`는 건드리지 않음).
   `careers_jobs`의 세부 필드는 `PROJECT_SPEC.md` §1 표 참고 — admin "채용 공고" 탭(`JobsTab.tsx`)에서
-  등록/수정 모두 가능. 단, `app/careers/[id]/page.tsx`의 **AFTER 1 YEAR 직무 적합도 카드**(마케팅
-  100%/운영 75%/세일즈 100%/BM·PM 60%/MD 75%, `ROLE_FIT` 상수, 이 순서로 고정 노출)는 아직 하드코딩된
+  등록/수정 모두 가능. 단, `app/careers/[id]/page.tsx`의 **AFTER 1 YEAR 직무 적합도 카드**(세일즈
+  100%/운영 75%/마케팅 70%/BM·PM 60%/MD 75%, `ROLE_FIT` 상수, 이 순서로 고정 노출. 비율은 체크된
+  항목 수로 자동 계산하되 `pct`를 직접 적으면 그 값을 쓴다 — 마케팅이 그 경우)는 아직 하드코딩된
   마케팅 카피이고 admin에서 편집 불가 — `employment_type==='intern'`인 공고에만 노출됨.
   `career_applications`에는 Tally 웹훅용 `raw_payload`/`tally_submission_id` 컬럼이 추가돼 있음.
   `careers_jobs.show_related`(admin 9번 항목)는 상세 페이지 하단에 **다른 브랜드 공고**(`jobs`

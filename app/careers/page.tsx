@@ -25,7 +25,7 @@ const STEPS = [
 const INTERN_STEPS = [
   { n: 1, title: "지원서 제출", note: "이력서 혹은 자유 양식 지원" },
   { n: 2, title: "서류 전형", note: "" },
-  { n: 3, title: "인터뷰", note: "" },
+  { n: 3, title: "서류 합격 후 오프라인 면접", note: "(서울특별시 용산구 보광로60길 3 이화빌딩 2층)" },
   { n: 4, title: "Fit Testing", note: "일주일간 진행" },
   { n: 5, title: "정식 계약", note: "최종 합격" },
 ];
@@ -145,7 +145,7 @@ export default async function CareersPage() {
           {INTERN_STEPS.map((s) => (
             <div
               key={s.n}
-              className="card-shadow min-w-[160px] flex-none rounded-2xl border border-gray-200 bg-white px-4 py-[18px]"
+              className="card-shadow min-w-[160px] max-w-[230px] flex-none rounded-2xl border border-gray-200 bg-white px-4 py-[18px]"
             >
               <span className="mb-2.5 inline-grid h-[26px] w-[26px] place-items-center rounded-lg bg-gray-900 text-xs font-extrabold text-white">
                 {s.n}
