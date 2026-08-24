@@ -187,7 +187,8 @@ function buildSections(job: CareersJob): JobSection[] {
           ? [
               "인턴 포지션인만큼 바로 퍼포먼스를 내는 업무에 투입되진 않아요.",
               "증명할수록 커리어 성장에 필요한 업무를 많이 맡게돼요.",
-              "또한, 초기 3개월은 운영 업무 위주로 진행돼요. __마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요.__",
+              "또한, 초기 3개월은 운영 업무 위주로 진행돼요.",
+              "__마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요.__",
             ]
           : undefined,
     },
@@ -387,33 +388,21 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
           <h1 className="mb-3.5 text-[40px] font-extrabold leading-[1.22] tracking-tight">
             {job.title}
           </h1>
-          <p className="max-w-[560px] text-[17px] leading-relaxed text-white/80">{job.summary}</p>
-          <div className="mt-[26px] flex flex-wrap gap-2">
-            {hashtags.length > 0 ? (
-              hashtags.map((tag) => (
+          <p className="max-w-[560px] whitespace-pre-line text-[17px] leading-relaxed text-white/80">
+            {job.summary}
+          </p>
+          {hashtags.length > 0 && (
+            <div className="mt-[26px] flex flex-wrap gap-2">
+              {hashtags.map((tag) => (
                 <span
                   key={tag}
                   className="inline-flex items-center gap-1.5 rounded-[10px] border border-white/[.16] bg-white/10 px-3.5 py-2 text-[13px] font-semibold"
                 >
                   #{tag}
                 </span>
-              ))
-            ) : (
-              [
-                { icon: "ph ph-briefcase", text: job.employment ?? "채용 형태 미정" },
-                { icon: "ph ph-buildings", text: job.location ?? "서울" },
-                { icon: "ph ph-clock", text: "주 5일 · 상시 모집" },
-              ].map((m) => (
-                <span
-                  key={m.text}
-                  className="inline-flex items-center gap-1.5 rounded-[10px] border border-white/[.16] bg-white/10 px-3.5 py-2 text-[13px] font-semibold"
-                >
-                  <i className={`${m.icon} opacity-80`} />
-                  {m.text}
-                </span>
-              ))
-            )}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
