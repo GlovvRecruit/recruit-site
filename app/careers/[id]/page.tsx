@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -107,7 +108,19 @@ function parseBenefitItems(text?: string | null): { title: string; desc: string 
     .filter((v): v is { title: string; desc: string } => !!v && !!v.title && !!v.desc);
 }
 
-type JobSection = { title: string; items: string[]; note?: string[] };
+type JobStep = { label: string; note?: string };
+type JobSection = { title: string; items: string[]; note?: string[]; flow?: JobStep[] };
+
+// 인턴 채용 절차. /careers 의 INTERN_STEPS 와 목적이 달라(여기는 지원자가 공고에서 바로 보는
+// 상세 흐름) 별도로 둔다 — 절차가 바뀌면 두 곳을 함께 고칠 것.
+const INTERN_HIRING_FLOW: JobStep[] = [
+  { label: "지원" },
+  { label: "서류 평가", note: "영업일 기준 하루 이내 안내" },
+  { label: "오프라인 면접", note: "영업일 기준 하루 이내 안내" },
+  { label: "1차 합격" },
+  { label: "일주일 테스팅", note: "급여 지급" },
+  { label: "최종 합격" },
+];
 
 /**
  * 체크리스트 항목 속 `**강조**` 구간을 글로브 그라데이션 텍스트로 렌더한다.
@@ -155,7 +168,12 @@ function buildSections(job: CareersJob): JobSection[] {
     },
     { title: "이런 분을 찾아요", items: splitLines(job.requirements) },
     { title: "이런 분이면 더 좋아요", items: splitLines(job.niceToHaves) },
-  ].filter((s) => s.items.length > 0);
+    {
+      title: "채용 프로세스는 다음과 같아요",
+      items: [],
+      flow: job.employmentType === "intern" ? INTERN_HIRING_FLOW : undefined,
+    },
+  ].filter((s) => s.items.length > 0 || (s.flow?.length ?? 0) > 0);
 }
 
 // 함께하는 주요 뷰티 브랜드 (glovvrecruit.github.io/intern 로고 그리드 기준)
@@ -485,6 +503,25 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                 </span>
                 <h3 className="text-lg font-extrabold tracking-tight">{sec.title}</h3>
               </div>
+              {sec.flow && (
+                <div className="flex flex-wrap items-stretch gap-x-2 gap-y-2.5">
+                  {sec.flow.map((step, idx) => (
+                    <Fragment key={step.label}>
+                      {idx > 0 && (
+                        <i className="ph-bold ph-caret-right self-center text-[13px] text-gray-300" />
+                      )}
+                      <div className="rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5">
+                        <div className="text-[14px] font-extrabold text-gray-900">{step.label}</div>
+                        {step.note && (
+                          <div className="mt-0.5 text-[11.5px] leading-snug text-gray-400">
+                            {step.note}
+                          </div>
+                        )}
+                      </div>
+                    </Fragment>
+                  ))}
+                </div>
+              )}
               <ul className="m-0 grid list-none gap-2.5 p-0">
                 {sec.items.map((item) => (
                   <li key={item} className="relative pl-[22px] text-[14.5px] leading-relaxed text-gray-700">
