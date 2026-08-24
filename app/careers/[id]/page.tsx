@@ -116,9 +116,9 @@ type JobSection = { title: string; items: string[]; note?: string[]; flow?: JobS
 const INTERN_HIRING_FLOW: JobStep[] = [
   { label: "지원" },
   { label: "서류 평가", note: "영업일 기준 하루 이내 안내" },
-  { label: "오프라인 면접", note: "영업일 기준 하루 이내 안내" },
+  { label: "오프라인 면접", note: "서울특별시 용산구 보광로60길 3 이화빌딩 2층" },
   { label: "1차 합격" },
-  { label: "일주일 테스팅", note: "급여 지급" },
+  { label: "일주일 테스팅", note: "유급" },
   { label: "최종 합격" },
 ];
 
@@ -525,7 +525,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                       {idx > 0 && (
                         <i className="ph-bold ph-caret-right self-center text-[13px] text-gray-300" />
                       )}
-                      <div className="rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5">
+                      <div className="max-w-[200px] rounded-xl border border-gray-200 bg-gray-50 px-3.5 py-2.5">
                         <div className="text-[14px] font-extrabold text-gray-900">{step.label}</div>
                         {step.note && (
                           <div className="mt-0.5 text-[11.5px] leading-snug text-gray-400">
