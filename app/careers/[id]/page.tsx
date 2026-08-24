@@ -109,6 +109,22 @@ function parseBenefitItems(text?: string | null): { title: string; desc: string 
 
 type JobSection = { title: string; items: string[]; note?: string[] };
 
+/**
+ * 체크리스트 항목 속 `**강조**` 구간을 글로브 그라데이션 텍스트로 렌더한다.
+ * admin에서 문구만 고쳐도 강조를 줄 수 있도록 마크다운식 표기를 쓴다.
+ */
+function renderEmphasis(text: string) {
+  return text.split("**").map((part, i) =>
+    i % 2 === 1 ? (
+      <span key={i} className="brand-gradient-text font-extrabold">
+        {part}
+      </span>
+    ) : (
+      part
+    )
+  );
+}
+
 function buildSections(job: CareersJob): JobSection[] {
   const hasCustomSections = !!(
     job.responsibilities ||
@@ -476,7 +492,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                       className="ph-bold ph-check absolute left-0 top-0.5"
                       style={{ color: "var(--brand-pink)" }}
                     />
-                    {item}
+                    {renderEmphasis(item)}
                   </li>
                 ))}
               </ul>
