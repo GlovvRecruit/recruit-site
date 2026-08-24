@@ -170,6 +170,13 @@ const PARTNER_BRANDS: { name: string; style?: React.CSSProperties }[] = [
   { name: "Huxley", style: { letterSpacing: "0.02em" } },
 ];
 
+// 커리어 전환을 준비하는 지원자에게 보내는 환영 문구(인턴 공고에만 노출).
+const CAREER_SWITCH_WELCOME = [
+  "자신의 꿈을 향해 열심히 달렸던 분",
+  "이제는 다른 도전을 하고 싶은 분",
+  "팀의 목표를 우선시하면서도 자기계발 하시는 분",
+];
+
 // 인턴 1년 후 직무 적합도 — 세일즈/운영/마케팅/BM·PM/MD 순으로 고정 노출.
 // 경력 요건은 제외하고 실제 인턴 수행 업무와 70%↑ 일치하면 "잘 맞아요"로 표시.
 // pct 를 생략하면 체크 비율로 계산한다.
@@ -352,6 +359,40 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
       </section>
 
       <main className="mx-auto max-w-[860px] px-5 pb-10 pt-[52px]">
+        {isIntern && (
+          <section className="mb-[52px]">
+            <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
+              WELCOME
+            </p>
+            <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
+              <span className="brand-gradient-text">커리어 전환 희망자</span> 환영
+            </h2>
+            <div
+              className="card-shadow rounded-2xl border p-7"
+              style={{
+                background: "linear-gradient(120deg, rgba(250,112,53,.05), rgba(255,0,153,.05))",
+                borderColor: "rgba(255,0,153,.16)",
+              }}
+            >
+              <ul className="m-0 grid list-none gap-2.5 p-0">
+                {CAREER_SWITCH_WELCOME.map((line) => (
+                  <li
+                    key={line}
+                    className="relative pl-[22px] text-[14.5px] leading-relaxed text-gray-700"
+                  >
+                    <i
+                      className="ph-bold ph-check absolute left-0 top-0.5"
+                      style={{ color: "var(--brand-pink)" }}
+                    />
+                    {line}
+                  </li>
+                ))}
+              </ul>
+              <p className="mt-4 mb-0 text-[14.5px] font-extrabold text-gray-900">을 환영합니다.</p>
+            </div>
+          </section>
+        )}
+
         <section>
           <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
             WHY GLOVV/FLIXX
