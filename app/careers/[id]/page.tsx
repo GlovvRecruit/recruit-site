@@ -155,16 +155,18 @@ const PARTNER_BRANDS: { name: string; style?: React.CSSProperties }[] = [
   { name: "Huxley", style: { letterSpacing: "0.02em" } },
 ];
 
-// 인턴 1년 후 직무 적합도 — 마케팅/운영/세일즈/BM·PM/MD 순으로 고정 노출.
+// 인턴 1년 후 직무 적합도 — 세일즈/운영/마케팅/BM·PM/MD 순으로 고정 노출.
 // 경력 요건은 제외하고 실제 인턴 수행 업무와 70%↑ 일치하면 "잘 맞아요"로 표시.
-const ROLE_FIT = [
+// pct 를 생략하면 체크 비율로 계산한다.
+type RoleFitSource = { name: string; pct?: number; reqs: { text: string; ok: boolean }[] };
+
+const ROLE_FIT = ([
   {
-    name: "마케팅",
+    name: "세일즈",
     reqs: [
-      { text: "뷰티 트렌드·콘텐츠에 대한 이해", ok: true },
-      { text: "SNS·숏폼 콘텐츠 운영 경험", ok: true },
-      { text: "인플루언서 마케팅·시딩 협업 경험", ok: true },
-      { text: "캠페인 운영 경험", ok: true },
+      { text: "고객·바이어 커뮤니케이션", ok: true },
+      { text: "B2B 영업·제안 경험", ok: true },
+      { text: "매출 목표 관리 경험", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
@@ -178,11 +180,14 @@ const ROLE_FIT = [
     ],
   },
   {
-    name: "세일즈",
+    name: "마케팅",
+    // 체크 4/5 = 80%지만 실제 인턴 업무 범위를 반영해 70%로 표기한다(2026-08-24 요청).
+    pct: 70,
     reqs: [
-      { text: "고객·바이어 커뮤니케이션", ok: true },
-      { text: "B2B 영업·제안 경험", ok: true },
-      { text: "매출 목표 관리 경험", ok: true },
+      { text: "뷰티 트렌드·콘텐츠에 대한 이해", ok: true },
+      { text: "SNS·숏폼 콘텐츠 운영 경험", ok: false },
+      { text: "인플루언서 마케팅·시딩 협업 경험", ok: true },
+      { text: "캠페인 운영 경험", ok: true },
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
@@ -205,9 +210,10 @@ const ROLE_FIT = [
       { text: "데이터 분석 툴 활용 · 기본 역량", ok: true },
     ],
   },
-].map((r) => {
+]).map((r: RoleFitSource) => {
   const okCount = r.reqs.filter((q) => q.ok).length;
-  const pct = Math.round((okCount / r.reqs.length) * 100);
+  // pct 를 직접 적어둔 직무는 그 값을 쓰고, 없으면 체크 비율로 계산한다.
+  const pct = r.pct ?? Math.round((okCount / r.reqs.length) * 100);
   return { ...r, pct, fit: pct >= 70 };
 });
 
