@@ -16,6 +16,7 @@
 
   --success: #12a150;
   --info: #2b7fff;
+  --danger: #e5484d;
 
   --gray-50: #f9fafb;
   --gray-100: #f3f4f6;
@@ -44,6 +45,7 @@
   --color-kakao-brown: var(--kakao-brown);
   --color-success: var(--success);
   --color-info: var(--info);
+  --color-danger: var(--danger);
   --color-surface: var(--surface);
   --color-gray-50: var(--gray-50);
   --color-gray-100: var(--gray-100);

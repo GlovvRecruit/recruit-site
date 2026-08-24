@@ -107,7 +107,7 @@ function parseBenefitItems(text?: string | null): { title: string; desc: string 
     .filter((v): v is { title: string; desc: string } => !!v && !!v.title && !!v.desc);
 }
 
-type JobSection = { title: string; items: string[]; note?: string };
+type JobSection = { title: string; items: string[]; note?: string[] };
 
 function buildSections(job: CareersJob): JobSection[] {
   const hasCustomSections = !!(
@@ -130,7 +130,11 @@ function buildSections(job: CareersJob): JobSection[] {
       // 줄이려고 지원 전에 미리 알린다(2026-08-24 요청).
       note:
         job.employmentType === "intern"
-          ? "초기 3개월은 운영 업무 위주로 진행돼요. 마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요."
+          ? [
+              "인턴 포지션인만큼 바로 퍼포먼스를 내는 업무에 투입되진 않아요.",
+              "증명할수록 커리어 성장에 필요한 업무를 많이 맡게돼요.",
+              "또한, 초기 3개월은 운영 업무 위주로 진행돼요. 마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요.",
+            ]
           : undefined,
     },
     { title: "이런 분을 찾아요", items: splitLines(job.requirements) },
@@ -436,13 +440,19 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                 ))}
               </ul>
               {sec.note && (
-                <p
-                  className="mt-4 mb-0 flex items-start gap-2 rounded-xl border p-[13px] text-[13.5px] leading-relaxed text-gray-500"
-                  style={{ background: "rgba(43,127,255,.06)", borderColor: "rgba(43,127,255,.16)" }}
+                <div
+                  className="mt-4 flex items-start gap-2.5 rounded-xl p-[15px] text-[13.5px] leading-relaxed text-white"
+                  style={{ background: "var(--danger)" }}
                 >
-                  <i className="ph-bold ph-info mt-0.5 flex-none text-[color:var(--info)]" />
-                  <span>{sec.note}</span>
-                </p>
+                  <i className="ph-bold ph-warning-circle mt-0.5 flex-none text-base" />
+                  <div className="grid gap-1">
+                    {sec.note.map((line) => (
+                      <p key={line} className="m-0">
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                </div>
               )}
             </div>
           ))}
