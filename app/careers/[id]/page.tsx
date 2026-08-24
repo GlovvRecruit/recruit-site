@@ -109,7 +109,14 @@ function parseBenefitItems(text?: string | null): { title: string; desc: string 
 }
 
 type JobStep = { label: string; note?: string };
-type JobSection = { title: string; items: string[]; note?: string[]; flow?: JobStep[] };
+type JobSection = {
+  title: string;
+  items: string[];
+  note?: string[];
+  flow?: JobStep[];
+  /** 데스크톱에서 이 순번 앞에서 줄을 바꾼다(모바일은 폭에 맞춰 자연스럽게 접힘). */
+  flowBreakAt?: number;
+};
 
 // 인턴 채용 절차. /careers 의 INTERN_STEPS 와 목적이 달라(여기는 지원자가 공고에서 바로 보는
 // 상세 흐름) 별도로 둔다 — 절차가 바뀌면 두 곳을 함께 고칠 것.
@@ -198,6 +205,9 @@ function buildSections(job: CareersJob): JobSection[] {
       title: "채용 프로세스는 다음과 같아요",
       items: [],
       flow: job.employmentType === "intern" ? INTERN_HIRING_FLOW : undefined,
+      // 6단계가 한 줄에 안 들어가 "최종 합격"만 다음 줄로 떨어지고 화살표가 허공에 남았다.
+      // 4단계 + 2단계로 끊어 두 줄이 고르게 보이도록 한다.
+      flowBreakAt: 4,
     },
   ].filter((s) => s.items.length > 0 || (s.flow?.length ?? 0) > 0);
 }
@@ -522,6 +532,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                 <div className="flex flex-wrap items-stretch gap-x-2 gap-y-2.5">
                   {sec.flow.map((step, idx) => (
                     <Fragment key={step.label}>
+                      {idx === sec.flowBreakAt && <div className="hidden w-full md:block" />}
                       {idx > 0 && (
                         <i className="ph-bold ph-caret-right self-center text-[13px] text-gray-300" />
                       )}
