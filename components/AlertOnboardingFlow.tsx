@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import BrandJobsBrowser from "@/components/BrandJobsBrowser";
 import { JOB_CATEGORIES, type Brand, type Job, type JobCategory } from "@/lib/types";
 import { matchesInterest, INTEREST_MATCH_NOTICE } from "@/lib/interest";
+import { isGlovvBrandName } from "@/lib/glovv-brands";
 import { createClient } from "@/lib/supabase/client";
 import { followKakaoChannel, type ChannelFollowResult } from "@/lib/kakao";
 import { track } from "@/lib/track";
@@ -65,10 +66,7 @@ interface StoredSubscription {
 type FlowStep = "card" | "step1" | "step2" | "done";
 type JobFilterMode = "all" | "glovv" | "interested";
 
-// 글로브를 이용하지 않는 브랜드. "글로브 이용 브랜드" 탭에서만 제외한다.
-const NON_GLOVV_BRANDS = ["에이피알", "메디큐브", "더파운더즈"];
-const normalizeBrandName = (name: string) =>
-  name.replace(/[ ()㈜]/g, "").replace("주식회사", "").toLowerCase();
+// 제외 목록과 정규화 규칙은 lib/glovv-brands.ts 한 곳에서 관리한다.
 
 function readStoredSubscription(): StoredSubscription | null {
   if (typeof window === "undefined") return null;
@@ -409,8 +407,7 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
   const nonGlovvBrandIds = useMemo(() => {
     const ids = new Set<string>();
     for (const b of brands) {
-      const names = [b.name, ...(b.brandNames ?? [])].map(normalizeBrandName);
-      if (NON_GLOVV_BRANDS.some((x) => names.some((n) => n.includes(normalizeBrandName(x))))) {
+      if (!isGlovvBrandName([b.name, ...(b.brandNames ?? [])])) {
         ids.add(b.id);
       }
     }

@@ -25,6 +25,10 @@
       "schedule": "40 19 * * *"
     },
     {
+      "path": "/api/cron/loreal-crawl",
+      "schedule": "50 19 * * *"
+    },
+    {
       "path": "/api/cron/kakao-weekly-send",
       "schedule": "0 0 * * 1,4"
     }

@@ -4,6 +4,7 @@ import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
 import BrandJobsBrowser from "@/components/BrandJobsBrowser";
 import { getBrands, getJobsSummary } from "@/lib/data";
+import { isGlovvBrandName } from "@/lib/glovv-brands";
 import type { Brand, JobCategory } from "@/lib/types";
 
 // 이 페이지는 뷰티 실무 직무만 다룬다 — "기타"(개발·인사·재무 등)는 필터에서도 아예 빼고
@@ -17,26 +18,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/brand-jobs/for-interns" },
 };
 
-/**
- * 글로브를 이용하지 않는 브랜드. 이 페이지의 핵심은 "대표가 직접 추천서를 전달할 수 있는 곳"이라
- * 글로브 이용 브랜드만 노출해야 한다.
- *
- * `crawl_candidate_brands`(글로브 이용 브랜드 명단 2,376건)와 이름으로 매칭하는 방식을 먼저
- * 시도했지만 `brands.brand_names`(별칭)가 불완전해서 23개 브랜드 중 7개가 누락됐다 —
- * CJ올리브영·애경산업·구다이글로벌처럼 실제로 이용하는 곳까지 빠졌다. `brands`에 들어있는 공고는
- * 애초에 글로브 이용 브랜드를 큐레이션해 크롤링한 결과이므로 **이용하지 않는 곳만 빼는** 방식이
- * 더 정확하다. 이용하지 않는 브랜드가 생기면 이 목록에 추가하면 된다.
- */
-const NON_GLOVV_BRANDS = ["에이피알", "메디큐브", "더파운더즈"];
-
-const normalizeName = (name: string) => name.replace(/[\s()㈜]|주식회사/g, "").toLowerCase();
-
 function isGlovvBrand(brand: Brand): boolean {
-  const names = [brand.name, ...(brand.brandNames ?? [])].map(normalizeName);
-  return !NON_GLOVV_BRANDS.some((excluded) => {
-    const target = normalizeName(excluded);
-    return names.some((n) => n === target || n.includes(target));
-  });
+  return isGlovvBrandName([brand.name, ...(brand.brandNames ?? [])]);
 }
 
 /**
