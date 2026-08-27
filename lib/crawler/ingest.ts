@@ -38,6 +38,14 @@ function categoryFromTitle(title: string): string | null {
   return null;
 }
 
+/**
+ * 게시판형 원본에서 제목에 줄바꿈·탭이 그대로 딸려오는 경우가 있어(코리아나화장품 등)
+ * 목록·카카오 메시지가 깨져 보인다. 공백을 하나로 접어 저장한다.
+ */
+function normalizeTitle(title: string): string {
+  return title.replace(/\s+/g, " ").trim();
+}
+
 function guessCategory(raw: string | null, title: string): string {
   const text = " " + `${raw ?? ""} ${title}`.toLowerCase() + " ";
   const word = (w: string) => new RegExp("(^|[^a-z])(" + w + ")([^a-z]|$)").test(text);
@@ -77,7 +85,7 @@ export async function ingestCrawledOpenings(
       crawl_run_id: crawlRunId,
       source_platform: item.sourcePlatform,
       brand_name: item.brandName,
-      title: item.title,
+      title: normalizeTitle(item.title),
       job_category: item.jobCategory ?? null,
       career_level: item.careerLevel ?? null,
       region: item.region ?? null,

@@ -188,7 +188,7 @@ function buildSections(job: CareersJob): JobSection[] {
       title: "이런 일을 해요",
       items: splitLines(job.responsibilities),
       // 인턴은 초기에 운영 업무 비중이 크다. 마케팅 업무를 기대하고 지원했다가 어긋나는 일을
-      // 줄이려고 지원 전에 미리 알린다(2026-08-24 요청).
+      // 줄이려고 지원 전에 미리 알린다(2026-08-27 요청).
       note:
         job.employmentType === "intern"
           ? [
@@ -274,7 +274,7 @@ const ROLE_FIT = ([
   },
   {
     name: "마케팅",
-    // 체크 4/5 = 80%지만 실제 인턴 업무 범위를 반영해 70%로 표기한다(2026-08-24 요청).
+    // 체크 4/5 = 80%지만 실제 인턴 업무 범위를 반영해 70%로 표기한다(2026-08-27 요청).
     pct: 70,
     reqs: [
       { text: "뷰티 트렌드·콘텐츠에 대한 이해", ok: true },
