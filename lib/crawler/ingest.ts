@@ -206,7 +206,13 @@ export async function ingestCrawledOpenings(
         .filter((j) => !urls.has(j.source_url))
         .map((j) => j.id);
       if (staleJobIds.length > 0) {
-        await supabase.from("jobs").delete().in("id", staleJobIds);
+        // **지우지 않고 닫는다.** 지워버리면 같은 공고가 다음 크롤링에서 다시 들어올 때
+        // created_at이 그날로 새로 찍혀 "신규 공고"로 오인되고, 카톡으로 이미 보낸 공고가
+        // 또 나간다(2026-08-27 기준 68건이 이 상태였다). 원본이 잠깐 응답하지 않거나
+        // 목록이 부분만 내려오면 멀쩡한 공고도 이 목록에 들어오기 때문에 실제로 자주 일어난다.
+        // 닫아두면 목록·발송에서 빠지고(status='open'만 노출), 다시 보이면 위 upsert가
+        // status를 open으로 되돌리되 created_at은 그대로 유지한다.
+        await supabase.from("jobs").update({ status: "closed" }).in("id", staleJobIds);
         staleJobsDeleted += staleJobIds.length;
       }
     }
