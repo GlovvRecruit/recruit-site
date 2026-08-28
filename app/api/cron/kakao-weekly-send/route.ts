@@ -309,30 +309,51 @@ export async function GET(request: Request) {
     return Response.json({ ok: true, targeted: leads.length, sent: 0, skipped, skippedNoAlimtalk });
   }
 
-  let result;
-  try {
-    result = await messageService.send(messages);
-  } catch (error) {
-    const failedList =
-      error && typeof error === "object" && "failedMessageList" in error
-        ? (error as { failedMessageList: unknown }).failedMessageList
-        : null;
-    console.error("[kakao-weekly-send] send failed:", error, failedList);
-    return Response.json(
-      { error: "send failed", detail: String(error), failedMessageList: failedList },
-      { status: 502 }
-    );
+  // 브랜드 메시지와 알림톡을 **따로 보낸다**. 한 번에 묶어 보내면 한쪽 상품이 통째로
+  // 거절될 때(예: 알림톡 템플릿 미승인) SDK가 예외를 던져 다른 상품까지 결과를 잃는다.
+  // 그러면 성공한 사람의 last_sent_at도 못 남겨 다음 발송에서 같은 내용을 또 받게 된다
+  // (알림톡 템플릿 심사 중에 실제로 확인, 2026-08-27).
+  const brandMessages = messages.filter((m) => m.kakaoOptions.bms);
+  const alimtalkMessages = messages.filter((m) => !m.kakaoOptions.bms);
+
+  interface FailedMessage {
+    to: string;
+    statusCode?: string;
+    statusMessage?: string;
   }
 
-  const failedPhones = new Set((result.failedMessageList ?? []).map((f) => f.to));
-  if (failedPhones.size > 0) {
+  const failedPhones = new Set<string>();
+  const failures: FailedMessage[] = [];
+
+  async function sendBatch(batch: typeof messages, label: string) {
+    if (batch.length === 0) return;
+    const collect = (list: readonly FailedMessage[] | null | undefined) => {
+      for (const item of list ?? []) {
+        failedPhones.add(item.to);
+        failures.push(item);
+      }
+    };
+    try {
+      const res = await messageService.send(batch);
+      collect(res.failedMessageList as readonly FailedMessage[] | undefined);
+    } catch (error) {
+      const list =
+        error && typeof error === "object" && "failedMessageList" in error
+          ? ((error as { failedMessageList: FailedMessage[] }).failedMessageList ?? [])
+          : [];
+      // 실패 목록조차 없으면 어느 건이 나갔는지 알 수 없다 — 배치 전체를 실패로 본다.
+      collect(list.length > 0 ? list : batch.map((m) => ({ to: m.to, statusMessage: String(error) })));
+      console.error(`[kakao-weekly-send] ${label} 배치 실패:`, error);
+    }
+  }
+
+  await sendBatch(brandMessages, "브랜드메시지");
+  await sendBatch(alimtalkMessages, "알림톡");
+
+  if (failures.length > 0) {
     console.error(
       "[kakao-weekly-send] failed recipients:",
-      (result.failedMessageList ?? []).map((f) => ({
-        to: f.to,
-        statusCode: f.statusCode,
-        statusMessage: f.statusMessage,
-      }))
+      failures.map((x) => ({ to: x.to, statusCode: x.statusCode, statusMessage: x.statusMessage }))
     );
   }
 
@@ -349,8 +370,11 @@ export async function GET(request: Request) {
     ok: true,
     targeted: leads.length,
     attempted: messages.length,
+    attemptedBrandMessage: brandMessages.length,
+    attemptedAlimtalk: alimtalkMessages.length,
     succeeded: succeededLeadIds.length,
     failed: failedPhones.size,
+    failures: failures.slice(0, 5).map((x) => ({ statusCode: x.statusCode, statusMessage: x.statusMessage })),
     skipped,
     skippedNoAlimtalk,
   });
