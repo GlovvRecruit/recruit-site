@@ -328,12 +328,15 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
     setSubmitting(true);
     try {
       const supabase = supabaseRef.current;
+      // is_channel_friend 는 **신규 가입에만** 초기값으로 준다. 관심사 수정(update)에까지 넣으면
+      // 채널을 이미 추가해 카톡을 잘 받던 사람이 브랜드 하나만 바꿔도 false 로 되돌아가
+      // 발송 대상에서 빠진다(2026-08-27 발견). 브랜드 메시지는 채널 친구에게만 발송되므로
+      // 이 값이 잘못 내려가면 그 사람은 그대로 알림이 끊긴다.
       const leadFields = {
         brand_ids: [...brandIds],
         categories: [...categories],
         marketing_opt_in: marketingConsent,
         unsubscribed: false,
-        is_channel_friend: false,
       };
       const { data: existing } = await supabase
         .from("leads")
@@ -345,7 +348,9 @@ export default function AlertOnboardingFlow({ brands, jobs }: { brands: Brand[];
       if (existing) {
         await supabase.from("leads").update(leadFields).eq("id", existing.id);
       } else {
-        await supabase.from("leads").insert({ phone: digits, ...leadFields });
+        await supabase
+          .from("leads")
+          .insert({ phone: digits, ...leadFields, is_channel_friend: false });
       }
       if (moreCompanyRequests.length > 0) {
         await supabase
