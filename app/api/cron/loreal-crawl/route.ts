@@ -36,17 +36,49 @@ interface LorealListItem {
   postedDate?: string;
 }
 
+/**
+ * 상세 페이지에서 공고 본문 영역만 잘라낸다.
+ *
+ * 본문은 `<div class="article__content article__content--rich-text" itemprop="description">` 안에
+ * 들어 있는데 그 안에 중첩 div가 있어서, 처음 구현처럼 `</div>`까지 통으로 잡는 정규식으로는
+ * 끝을 못 찾아 본문을 하나도 못 가져왔다(2026-08-28 확인). div 깊이를 세어 짝이 맞는 닫는
+ * 태그까지 잘라낸다.
+ */
+function extractDescriptionHtml(html: string): string | null {
+  const key = 'itemprop="description"';
+  const keyIndex = html.indexOf(key);
+  if (keyIndex < 0) return null;
+  const start = html.indexOf(">", keyIndex) + 1;
+  if (start <= 0) return null;
+
+  const tag = /<\/?div\b/gi;
+  tag.lastIndex = start;
+  let depth = 1;
+  let m: RegExpExecArray | null;
+  while ((m = tag.exec(html))) {
+    depth += m[0].toLowerCase().startsWith("</div") ? -1 : 1;
+    if (depth === 0) return html.slice(start, m.index);
+  }
+  return null;
+}
+
 function htmlToText(html: string | null): string {
   return (html || "")
-    .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
-    .replace(/<br\s*\/?>/gi, "\n")
+    // 본문 맨 앞에 수백 KB짜리 base64 배너 이미지가 들어있다 — 텍스트로 바꾸기 전에 지운다.
+    .replace(/<img[^>]*>/gi, "")
     .replace(/<script[\s\S]*?<\/script>/gi, "")
     .replace(/<style[\s\S]*?<\/style>/gi, "")
+    .replace(/<\/(p|div|li|tr|h[1-6])>/gi, "\n")
+    .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<[^>]+>/g, "")
     .replace(/&nbsp;/g, " ")
     .replace(/&amp;/g, "&")
-    .replace(/&#39;|&rsquo;/g, "'")
-    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&rsquo;|&lsquo;/g, "'")
+    .replace(/&quot;|&ldquo;|&rdquo;/g, '"')
+    .replace(/&eacute;/g, "e")
+    .replace(/&ndash;|&mdash;/g, "-")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -84,10 +116,7 @@ async function fetchDetail(
   });
   if (!res.ok) return { description: null, isKorea: null };
   const html = await res.text();
-  const body =
-    html.match(/class="article__content"[^>]*>([\s\S]*?)<\/div>\s*<div class="article__/)?.[1] ??
-    html.match(/id="job-details"[^>]*>([\s\S]*?)<\/div>\s*<\/div>/)?.[1] ??
-    null;
+  const body = extractDescriptionHtml(html);
   return {
     description: htmlToText(body) || null,
     isKorea: /South Korea/i.test(html),
