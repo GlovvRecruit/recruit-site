@@ -103,7 +103,7 @@ export async function ingestCrawledOpenings(
   const rows = Array.from(new Map(rawRows.map((r) => [r.source_url, r])).values());
 
   if (rows.length === 0) {
-    return { ok: true, upserted: 0, published: 0, staleJobsDeleted: 0, staleStagingDeleted: 0 } as const;
+    return { ok: true, upserted: 0, published: 0, staleJobsDeleted: 0 } as const;
   }
 
   const { error } = await supabase
@@ -121,9 +121,13 @@ export async function ingestCrawledOpenings(
   const sourceUrls = rows.map((r) => r.source_url);
   const { data: statusRows } = await supabase
     .from("crawled_jobs_staging")
-    .select("source_url, review_status")
+    .select("source_url, review_status, created_at")
     .in("source_url", sourceUrls);
   const statusByUrl = new Map((statusRows ?? []).map((r) => [r.source_url, r.review_status]));
+  // 공고를 **처음 본 날**. jobs는 채용이 끝나면 삭제되지만 staging은 남기 때문에, 같은 공고가
+  // 다시 올라와도 이 값으로 원래 날짜를 되돌려준다. 카톡 발송이 "마지막 발송 이후 생성된 공고"를
+  // 신규로 보므로, 이게 없으면 이미 보낸 공고가 다시 나간다.
+  const firstSeenByUrl = new Map((statusRows ?? []).map((r) => [r.source_url, r.created_at]));
 
   const hiddenUrls = rows
     .filter((r) => statusByUrl.get(r.source_url) === "hidden")
@@ -169,6 +173,8 @@ export async function ingestCrawledOpenings(
         description_images: r.description_images,
         deadline: r.deadline,
         status: "open",
+        // 처음 수집한 날로 고정 — 삭제 후 재등록돼도 "신규"로 되살아나지 않게 한다.
+        created_at: firstSeenByUrl.get(r.source_url) ?? now,
       }));
       await supabase.from("jobs").upsert(jobRows, { onConflict: "source_url" });
     }
@@ -187,8 +193,7 @@ export async function ingestCrawledOpenings(
   }
 
   let staleJobsDeleted = 0;
-  let staleStagingDeleted = 0;
-  for (const { platform, brand, urls } of groups.values()) {
+  for (const { brand, urls } of groups.values()) {
     if (urls.size === 0) continue;
 
     const { data: brandRow } = await supabase
@@ -206,29 +211,19 @@ export async function ingestCrawledOpenings(
         .filter((j) => !urls.has(j.source_url))
         .map((j) => j.id);
       if (staleJobIds.length > 0) {
-        // **지우지 않고 닫는다.** 지워버리면 같은 공고가 다음 크롤링에서 다시 들어올 때
-        // created_at이 그날로 새로 찍혀 "신규 공고"로 오인되고, 카톡으로 이미 보낸 공고가
-        // 또 나간다(2026-08-27 기준 68건이 이 상태였다). 원본이 잠깐 응답하지 않거나
-        // 목록이 부분만 내려오면 멀쩡한 공고도 이 목록에 들어오기 때문에 실제로 자주 일어난다.
-        // 닫아두면 목록·발송에서 빠지고(status='open'만 노출), 다시 보이면 위 upsert가
-        // status를 open으로 되돌리되 created_at은 그대로 유지한다.
-        await supabase.from("jobs").update({ status: "closed" }).in("id", staleJobIds);
+        // 원본에서 사라진 공고는 채용이 끝난 것이므로 그대로 지운다(2026-08-27 결정).
+        // 다시 들어오더라도 created_at 은 staging의 최초 수집일에서 가져오므로(위 jobRows)
+        // "신규 공고"로 오인되어 카톡이 다시 나가는 일은 없다.
+        await supabase.from("jobs").delete().in("id", staleJobIds);
         staleJobsDeleted += staleJobIds.length;
       }
     }
 
-    const { data: existingStaging } = await supabase
-      .from("crawled_jobs_staging")
-      .select("id, source_url")
-      .eq("source_platform", platform)
-      .eq("brand_name", brand);
-    const staleStagingIds = (existingStaging ?? [])
-      .filter((s) => !urls.has(s.source_url))
-      .map((s) => s.id);
-    if (staleStagingIds.length > 0) {
-      await supabase.from("crawled_jobs_staging").delete().in("id", staleStagingIds);
-      staleStagingDeleted += staleStagingIds.length;
-    }
+    // staging은 **지우지 않는다.** 이 테이블이 공고의 최초 수집일(created_at)과 사람이 매긴
+    // 검수 상태(review_status)를 보관하는 유일한 곳이다. 지워버리면
+    //  - 같은 공고가 다시 들어올 때 최초 수집일이 오늘로 바뀌어 "신규"로 오인되고(중복 카톡)
+    //  - admin에서 "숨김" 처리한 공고가 숨김 상태를 잃고 다시 공개된다.
+    // 사라진 공고는 last_seen_at이 더 이상 갱신되지 않으므로 그 값으로 구분한다.
   }
 
   return {
@@ -236,6 +231,5 @@ export async function ingestCrawledOpenings(
     upserted: rows.length,
     published: publishRows.length,
     staleJobsDeleted,
-    staleStagingDeleted,
   } as const;
 }

@@ -43,9 +43,13 @@ export default function CrawlReviewTab() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   async function reload() {
+    // staging은 최초 수집일·검수 상태를 보관하려고 지우지 않는다(lib/crawler/ingest.ts 참고).
+    // 그래서 이미 마감된 공고까지 쌓이므로, 검수 목록에는 최근 14일 안에 실제로 보인 것만 띄운다.
+    const seenSince = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString();
     const { data } = await supabase
       .from("crawled_jobs_staging")
       .select("*")
+      .gte("last_seen_at", seenSince)
       .neq("review_status", "hidden")
       .order("brand_name", { ascending: true })
       .order("created_at", { ascending: false });
