@@ -89,16 +89,6 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script id="google-ads-gtag" strategy="afterInteractive">
-          {`window.dataLayer = window.dataLayer || [];
-          function gtag(){dataLayer.push(arguments);}
-          gtag('js', new Date());
-          gtag('config', '${GOOGLE_ADS_ID}');`}
-        </Script>
         <link
           rel="stylesheet"
           href="https://unpkg.com/@phosphor-icons/web@2.1.1/src/regular/style.css"
@@ -119,6 +109,37 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteJsonLd) }}
         />
+        <noscript>
+          {/* eslint-disable-next-line @next/next/no-img-element -- Meta Pixel noscript 표준 스니펫 */}
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
+            alt=""
+          />
+        </noscript>
+      </head>
+      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
+        <Analytics />
+        {children}
+
+        {/*
+          next/script 는 **head 안에 두면 안 된다.** head 에 넣으면 SSR HTML 에 인라인으로 한 번,
+          하이드레이션 때 클라이언트가 주입하며 또 한 번 들어가 스니펫이 문서에 2벌 존재하게 된다
+          (2026-08-28 확인 — 픽셀 스니펫이 실제로 2개였다). 지금은 전역 플래그로 이벤트 중복은
+          막고 있지만, 스니펫 자체를 한 벌로 두는 것이 맞다. 공식 문서도 body 뒤에 두는 예시를 쓴다.
+        */}
+        <Script
+          src={`https://www.googletagmanager.com/gtag/js?id=${GOOGLE_ADS_ID}`}
+          strategy="afterInteractive"
+        />
+        <Script id="google-ads-gtag" strategy="afterInteractive">
+          {`window.dataLayer = window.dataLayer || [];
+          function gtag(){dataLayer.push(arguments);}
+          gtag('js', new Date());
+          gtag('config', '${GOOGLE_ADS_ID}');`}
+        </Script>
         <Script id="meta-pixel" strategy="afterInteractive">
           {`!function(f,b,e,v,n,t,s)
           {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -134,21 +155,7 @@ export default function RootLayout({
           if(!window.__fbInit){window.__fbInit=1;fbq('init', '${META_PIXEL_ID}');}
           if(!window.__fbPageView){window.__fbPageView=1;fbq('track', 'PageView');}`}
         </Script>
-        <noscript>
-          {/* eslint-disable-next-line @next/next/no-img-element -- Meta Pixel noscript 표준 스니펫 */}
-          <img
-            height="1"
-            width="1"
-            style={{ display: "none" }}
-            src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`}
-            alt=""
-          />
-        </noscript>
         <Script src="https://t1.kakaocdn.net/kakao_js_sdk/2.8.1/kakao.min.js" strategy="afterInteractive" />
-      </head>
-      <body className="min-h-full flex flex-col bg-gray-50 text-gray-900">
-        <Analytics />
-        {children}
       </body>
     </html>
   );
