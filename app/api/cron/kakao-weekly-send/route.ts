@@ -11,6 +11,8 @@ interface LeadRow {
   created_at: string;
   /** 링크에서 구독 정보를 복원하기 위한 불투명 토큰(0020 마이그레이션) */
   access_token: string | null;
+  /** 카카오 채널 친구 여부. 이 값으로 브랜드 메시지/알림톡을 갈라 보낸다. */
+  is_channel_friend: boolean | null;
 }
 
 interface CareersJobRow {
@@ -45,6 +47,27 @@ const SECTION_CHAR_BUDGET = 550;
  * moreUrl이 null이면 넘치는 건수·빈 상태에서 URL을 붙이지 않는다 — 메시지 하단에 카카오 템플릿
  * 버튼이 있어서 본문에 같은 링크를 또 넣으면 중복이다(2026-07-30 사용자 피드백).
  */
+/**
+ * 알림톡 본문용 — 제목만 나열한다.
+ *
+ * 알림톡은 정보성 메시지라 본문에 링크를 넣으면 심사에서 광고성으로 걸릴 여지가 있어,
+ * 링크는 템플릿 버튼(내 관심 공고 보기)으로만 제공한다.
+ */
+function formatJobTitles(jobs: { title: string; brandName?: string }[]): string {
+  const lines: string[] = [];
+  let used = 0;
+  for (const j of jobs) {
+    if (lines.length >= MAX_ITEMS_PER_SECTION) break;
+    const line = `· ${j.brandName ? `[${j.brandName}] ` : ""}${j.title}`;
+    if (used + line.length > SECTION_CHAR_BUDGET) break;
+    lines.push(line);
+    used += line.length + 1;
+  }
+  const remaining = jobs.length - lines.length;
+  if (remaining > 0) lines.push(`· 외 ${remaining}건`);
+  return lines.join("\n");
+}
+
 function formatJobLines(
   jobs: { title: string; url: string; brandName?: string }[],
   moreUrl: string | null
@@ -86,6 +109,12 @@ export async function GET(request: Request) {
   // ?template=<ID> — 새 템플릿을 운영 환경변수를 바꾸기 전에 시험 발송해보기 위한 override.
   // 확정되면 SOLAPI_TEMPLATE_ID 환경변수를 바꾸는 게 맞다(이 파라미터는 테스트 용도).
   const templateId = url.searchParams.get("template") || process.env.SOLAPI_TEMPLATE_ID;
+  // 채널 친구가 아닌 구독자에게 보낼 **알림톡** 템플릿. 브랜드 메시지는 targeting "I"라
+  // 채널 친구에게만 도달하는데, 실제 친구 추가율이 8%대라 나머지는 알림톡으로 보낸다
+  // (알림톡은 채널 추가 없이 발송되지만 정보성 문구만 허용 — 자사 공고 홍보는 넣지 않는다).
+  // 템플릿 승인 전에는 비워두면 되고, 그 동안 비친구는 발송 대상에서 조용히 빠진다.
+  const alimtalkTemplateId =
+    url.searchParams.get("alimtalkTemplate") || process.env.SOLAPI_ALIMTALK_TEMPLATE_ID || null;
   const siteUrl = process.env.SITE_BASE_URL;
   if (!apiKey || !apiSecret || !pfId || !templateId || !siteUrl) {
     return Response.json(
@@ -105,9 +134,10 @@ export async function GET(request: Request) {
   const [leadsRes, careersJobsRes, jobsRes, brandsRes] = await Promise.all([
     supabase
       .from("leads")
-      .select("id, phone, brand_ids, categories, last_sent_at, created_at, access_token")
+      .select(
+        "id, phone, brand_ids, categories, last_sent_at, created_at, access_token, is_channel_friend"
+      )
       .eq("unsubscribed", false)
-      .eq("is_channel_friend", true)
       // 마케팅성 메시지이므로 마케팅 수신 동의가 없으면 절대 발송하지 않는다(가입 폼에서도
       // 필수로 막아두지만, 과거 데이터·직접 DB 수정 등에 대비해 발송 단계에서도 다시 확인).
       .eq("marketing_opt_in", true),
@@ -144,7 +174,8 @@ export async function GET(request: Request) {
       templateId: string;
       variables: Record<string, string>;
       disableSms: boolean;
-      bms: { targeting: "I"; chatBubbleType: "TEXT" };
+      // 알림톡에는 bms 옵션을 붙이지 않는다 — 붙이면 브랜드 메시지로 처리된다.
+      bms?: { targeting: "I"; chatBubbleType: "TEXT" };
     };
     // 메시지 하단 버튼("전체 브랜드 공고")은 **카카오 브랜드 메시지 템플릿에 등록된 버튼**이고,
     // 발송 API로 buttons를 같이 보내도 템플릿 쪽이 우선해 무시된다(2026-07-30 실발송으로 확인).
@@ -154,6 +185,8 @@ export async function GET(request: Request) {
   }[] = [];
   const leadByPhone = new Map<string, LeadRow>();
   let skipped = 0;
+  // 알림톡 템플릿이 아직 없어서 비친구에게 보내지 못하고 건너뛴 수(승인 전 상태 파악용).
+  let skippedNoAlimtalk = 0;
 
   for (const lead of leads) {
     // 첫 발송(last_sent_at 없음)에는 가입 이후 새로 열린 공고만 보낸다 — 가입 시점 이전부터
@@ -198,6 +231,37 @@ export async function GET(request: Request) {
     );
 
     const digits = lead.phone.replace(/[^0-9]/g, "");
+
+    // 채널 친구가 아니면 브랜드 메시지가 도달하지 않는다. 알림톡 템플릿이 준비돼 있으면
+    // 그쪽으로 보내고(정보성 — 관심 공고만), 아직 없으면 발송 대상에서 뺀다.
+    if (lead.is_channel_friend !== true) {
+      if (!alimtalkTemplateId) {
+        skippedNoAlimtalk += 1;
+        continue;
+      }
+      leadByPhone.set(digits, lead);
+      messages.push({
+        to: digits,
+        from: "01099712034",
+        kakaoOptions: {
+          pfId,
+          templateId: alimtalkTemplateId,
+          variables: {
+            "#{건수}": String(interestNew.length),
+            "#{공고목록}": formatJobTitles(
+              interestNew.map((j) => ({
+                title: j.title,
+                brandName: brandNameById.get(j.brand_id),
+              }))
+            ),
+            "#{토큰}": lead.access_token ?? "",
+          },
+          disableSms: true,
+        },
+      });
+      continue;
+    }
+
     leadByPhone.set(digits, lead);
     messages.push({
       to: digits,
@@ -228,18 +292,21 @@ export async function GET(request: Request) {
       preview: true,
       // 어떤 템플릿으로 나가는지 확인할 수 있게 같이 돌려준다(?template= override 여부 판별용).
       templateId,
+      alimtalkTemplateId,
       targeted: leads.length,
       wouldSend: messages.length,
       skipped,
+      skippedNoAlimtalk,
       messages: messages.map((m) => ({
         to: `${m.to.slice(0, 5)}****${m.to.slice(-2)}`,
+        product: m.kakaoOptions.bms ? "브랜드메시지" : "알림톡",
         variables: m.kakaoOptions.variables,
       })),
     });
   }
 
   if (messages.length === 0) {
-    return Response.json({ ok: true, targeted: leads.length, sent: 0, skipped });
+    return Response.json({ ok: true, targeted: leads.length, sent: 0, skipped, skippedNoAlimtalk });
   }
 
   let result;
@@ -285,5 +352,6 @@ export async function GET(request: Request) {
     succeeded: succeededLeadIds.length,
     failed: failedPhones.size,
     skipped,
+    skippedNoAlimtalk,
   });
 }
