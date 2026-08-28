@@ -128,7 +128,11 @@ export default function RootLayout({
           t.src=v;s=b.getElementsByTagName(e)[0];
           s.parentNode.insertBefore(t,s)}(window, document,'script',
           'https://connect.facebook.net/en_US/fbevents.js');
-          fbq('init', '${META_PIXEL_ID}');`}
+          // 이 스니펫이 클라이언트 라우팅 등으로 다시 실행돼도 PageView가 한 번만 나가게 막는다.
+          // 위 IIFE는 f.fbq가 이미 있으면 곧바로 return하지만, 그 아래 init/track 줄은 그대로
+          // 다시 실행돼 같은 PageView가 연달아 찍히고 Events Manager에 중복(DUP) 경고가 뜬다.
+          if(!window.__fbInit){window.__fbInit=1;fbq('init', '${META_PIXEL_ID}');}
+          if(!window.__fbPageView){window.__fbPageView=1;fbq('track', 'PageView');}`}
         </Script>
         <noscript>
           {/* eslint-disable-next-line @next/next/no-img-element -- Meta Pixel noscript 표준 스니펫 */}
