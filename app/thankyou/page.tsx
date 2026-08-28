@@ -2,13 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import SiteNav from "@/components/SiteNav";
 import Footer from "@/components/Footer";
+import CompleteRegistrationPixel from "@/components/CompleteRegistrationPixel";
 
 /**
  * 지원 완료 페이지.
  *
- * Tally 지원서를 제출하면 이 URL로 리디렉트되고, **Meta 픽셀이 이 페이지의 PageView를
- * complete_registration 전환으로 집계**한다(Events Manager의 URL 규칙). 따라서
- * 경로(/thankyou)를 바꾸면 광고 전환 집계가 끊긴다 — 변경 시 Events Manager도 함께 고쳐야 한다.
+ * Tally 지원서를 제출하면 이 URL로 리디렉트되고, 여기서 Meta 표준 이벤트
+ * **CompleteRegistration**을 직접 발화한다(CompleteRegistrationPixel). 예전에는 Events Manager의
+ * URL 규칙에 맡겼는데 실제로는 Lead로 집계되고 있어서 코드에서 명시하도록 바꿨다(2026-08-27).
+ * 경로(/thankyou)를 바꾸면 Tally 리디렉트 설정도 함께 고쳐야 한다.
  *
  * 전환 집계 지점이라 검색 노출은 막는다(색인되면 지원과 무관한 유입이 전환으로 잡힌다).
  */
@@ -24,6 +26,7 @@ export default function ThankYouPage() {
     // main이 남은 높이를 채우게 하고 푸터를 항상 화면 맨 아래로 밀어낸다.
     <div className="flex min-h-screen flex-col bg-gray-50">
       <SiteNav />
+      <CompleteRegistrationPixel />
 
       <main className="mx-auto flex w-full max-w-[560px] flex-1 flex-col items-center px-5 pb-[60px] pt-[72px] text-center">
         <div
