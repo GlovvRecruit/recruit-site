@@ -151,12 +151,12 @@ export default function JobsTab() {
           <input
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-            placeholder="예: 글로브/플릭스 뷰티 전환형 인턴"
+            placeholder="예: 글로브/플릭스 뷰티 전환형 매니저"
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
           />
         </label>
 
-        {/* 인턴/정규직 여부 (제목 바로 다음) */}
+        {/* 전환형 매니저/정규직 여부 (제목 바로 다음) */}
         <label className="block">
           <span className="mb-1 block text-xs font-bold text-gray-600">고용 형태</span>
           <select
@@ -166,7 +166,8 @@ export default function JobsTab() {
             }
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
           >
-            <option value="intern">인턴</option>
+            {/* value 는 'intern' 그대로 — 공고 상세의 전환 평가·직무 경험 섹션 노출 조건이다. */}
+            <option value="intern">전환형 매니저</option>
             <option value="fulltime">정규직</option>
           </select>
         </label>
@@ -176,7 +177,7 @@ export default function JobsTab() {
           <input
             value={form.tag}
             onChange={(e) => setForm((f) => ({ ...f, tag: e.target.value }))}
-            placeholder="예: 인턴, 마케팅"
+            placeholder="예: 매니저, 마케팅"
             className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm"
           />
         </label>

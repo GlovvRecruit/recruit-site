@@ -62,7 +62,7 @@ export default function AdminShell({ email }: { email: string }) {
           rel="noopener noreferrer"
           className="inline-flex items-center gap-1.5 text-[13px] font-bold text-gray-400 no-underline"
         >
-          <i className="ph ph-arrow-square-out" /> brand-helper (인턴 Q&A)
+          <i className="ph ph-arrow-square-out" /> brand-helper (매니저 Q&A)
         </a>
         <a
           href="https://glovvrecruit.github.io/exam/admin.html"
