@@ -241,7 +241,7 @@ const PARTNER_BRANDS: { name: string; style?: React.CSSProperties }[] = [
 // 지원자가 가장 먼저 확인하는 정보 — 전환 평가 시점과 통과율을 맨 위에 둔다(2026-08-28 요청).
 const CONVERSION_NOTICE = [
   "필기/실기 테스팅으로 평가",
-  "약 70% 가 정규직 전환",
+  "약 50% 가 정규직 전환",
 ];
 
 // 1년 근무 후 얻는 경험을 직무별로 보여준다 — 세일즈/운영/마케팅/BM·PM/MD 순으로 고정 노출.
