@@ -80,7 +80,7 @@ const DEFAULT_SECTIONS = [
   },
   {
     title: "근무 조건",
-    items: ["서울 오피스 · 주 5일 근무", "인턴 종료 후 정규직 전환 기회", "성과에 따른 처우 협의"],
+    items: ["서울 오피스 · 주 5일 근무", "3개월 후 정규직 전환 기회", "성과에 따른 처우 협의"],
   },
 ];
 
@@ -118,7 +118,7 @@ type JobSection = {
   flowBreakAt?: number;
 };
 
-// 인턴 채용 절차. /careers 의 INTERN_STEPS 와 목적이 달라(여기는 지원자가 공고에서 바로 보는
+// 매니저 채용 절차. /careers 의 INTERN_STEPS 와 목적이 달라(여기는 지원자가 공고에서 바로 보는
 // 상세 흐름) 별도로 둔다 — 절차가 바뀌면 두 곳을 함께 고칠 것.
 const INTERN_HIRING_FLOW: JobStep[] = [
   { label: "지원" },
@@ -187,15 +187,13 @@ function buildSections(job: CareersJob): JobSection[] {
     {
       title: "이런 일을 해요",
       items: splitLines(job.responsibilities),
-      // 인턴은 초기에 운영 업무 비중이 크다. 마케팅 업무를 기대하고 지원했다가 어긋나는 일을
-      // 줄이려고 지원 전에 미리 알린다(2026-08-27 요청).
+      // 전환 평가 전 3개월은 업무를 익히는 기간이라는 점을 지원 전에 미리 알린다. 마케팅 업무를
+      // 기대하고 지원했다가 어긋나는 일을 줄이려는 문구다(2026-08-28 개정).
       note:
         job.employmentType === "intern"
           ? [
-              "인턴 포지션인만큼 바로 퍼포먼스를 내는 업무에 투입되진 않아요.",
-              "증명할수록 커리어 성장에 필요한 업무를 많이 맡게돼요.",
-              "또한, 초기 3개월은 운영 업무 위주로 진행돼요.",
-              "__마케팅 업무를 바로 맡고 싶다면 Fit이 맞지 않을 수 있어요.__",
+              "전환 전 3개월은 업무를 익히는 시간이에요.",
+              "전환 후 마케팅 업무를 포함한 더 다양한 업무를 진행할 수 있어요.",
             ]
           : undefined,
     },
@@ -240,16 +238,14 @@ const PARTNER_BRANDS: { name: string; style?: React.CSSProperties }[] = [
   { name: "Huxley", style: { letterSpacing: "0.02em" } },
 ];
 
-// 커리어 전환을 준비하는 지원자에게 보내는 환영 문구(인턴 공고에만 노출).
-const CAREER_SWITCH_WELCOME = [
-  "자신의 꿈을 향해 열심히 달렸던 분",
-  "이제는 다른 도전을 하고 싶은 분",
-  "팀의 목표를 개인의 목표보다 우선시하는 분",
-  "그러면서도 성장에 욕심있고 꾸준히 자기계발 하는 분",
+// 지원자가 가장 먼저 확인하는 정보 — 전환 평가 시점과 통과율을 맨 위에 둔다(2026-08-28 요청).
+const CONVERSION_NOTICE = [
+  "필기/실기 테스팅으로 평가",
+  "약 70% 가 정규직 전환",
 ];
 
-// 인턴 1년 후 직무 적합도 — 세일즈/운영/마케팅/BM·PM/MD 순으로 고정 노출.
-// 경력 요건은 제외하고 실제 인턴 수행 업무와 70%↑ 일치하면 "잘 맞아요"로 표시.
+// 1년 근무 후 얻는 경험을 직무별로 보여준다 — 세일즈/운영/마케팅/BM·PM/MD 순으로 고정 노출.
+// 경력 요건은 제외하고 실제 수행 업무와 70%↑ 일치하면 "잘 맞아요"로 표시.
 // pct 를 생략하면 체크 비율로 계산한다.
 type RoleFitSource = { name: string; pct?: number; reqs: { text: string; ok: boolean }[] };
 
@@ -274,7 +270,7 @@ const ROLE_FIT = ([
   },
   {
     name: "마케팅",
-    // 체크 4/5 = 80%지만 실제 인턴 업무 범위를 반영해 70%로 표기한다(2026-08-27 요청).
+    // 체크 4/5 = 80%지만 실제 업무 범위를 반영해 70%로 표기한다(2026-08-27 요청).
     pct: 70,
     reqs: [
       { text: "뷰티 트렌드·콘텐츠에 대한 이해", ok: true },
@@ -420,12 +416,6 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
       <main className="mx-auto max-w-[860px] px-5 pb-10 pt-[52px]">
         {isIntern && (
           <section className="mb-[52px]">
-            <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
-              WELCOME
-            </p>
-            <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
-              <span className="brand-gradient-text">커리어 전환 희망자</span> 환영
-            </h2>
             <div
               className="card-shadow rounded-2xl border p-7"
               style={{
@@ -433,8 +423,11 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                 borderColor: "rgba(255,0,153,.16)",
               }}
             >
+              <h2 className="mb-4 text-2xl font-extrabold tracking-tight">
+                3개월 후 <span className="brand-gradient-text">전환 평가</span> 진행
+              </h2>
               <ul className="m-0 grid list-none gap-2.5 p-0">
-                {CAREER_SWITCH_WELCOME.map((line) => (
+                {CONVERSION_NOTICE.map((line) => (
                   <li
                     key={line}
                     className="relative pl-[22px] text-[14.5px] leading-relaxed text-gray-700"
@@ -447,7 +440,6 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                   </li>
                 ))}
               </ul>
-              <p className="mt-4 mb-0 text-[14.5px] font-extrabold text-gray-900">을 환영합니다.</p>
             </div>
           </section>
         )}
@@ -581,127 +573,11 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
         {isIntern && (
           <section className="mt-[52px]">
             <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
-              GROWTH ROADMAP
-            </p>
-            <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
-              이렇게 성장해요 — 1년 로드맵
-            </h2>
-
-            <div className="mb-[52px] rounded-2xl border border-gray-200 bg-white p-7">
-              <div className="mb-1.5 flex items-baseline justify-between text-xs text-gray-400">
-                <span>인턴</span>
-                <span className="inline-flex items-center gap-1.5">
-                  1년 차
-                  <i className="ph-bold ph-check text-[13px] text-[color:var(--brand-pink)]" />
-                  <b className="brand-gradient-text text-[13px] font-extrabold">전환 평가</b>
-                </span>
-              </div>
-              <div className="mb-2.5 flex h-[46px] w-full overflow-hidden rounded-[10px]">
-                <div
-                  className="flex flex-none items-center justify-center bg-gray-900 text-center text-[11px] font-bold leading-tight text-white"
-                  style={{ flex: "0 0 8%" }}
-                >
-                  1주
-                  <br />
-                  스타트
-                </div>
-                <div
-                  className="flex flex-1 items-center justify-center text-[12px] font-bold"
-                  style={{ background: "#F4C0D1", color: "#72243E" }}
-                >
-                  1~3개월
-                </div>
-                <div
-                  className="flex items-center justify-center text-[12px] font-bold text-white"
-                  style={{ flex: "3", background: "var(--brand-pink)" }}
-                >
-                  4~12개월
-                </div>
-              </div>
-              <div className="mb-7 flex w-full text-[11px] text-gray-400">
-                <div style={{ flex: "0 0 8%" }} />
-                <div className="flex-1 text-center">Q1</div>
-                <div className="text-center" style={{ flex: "3" }}>
-                  Q2 ~ Q4
-                </div>
-              </div>
-
-              <div className="grid grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-3.5">
-                <div className="rounded-xl bg-gray-50 p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <span className="h-2.5 w-2.5 flex-none rounded-[3px] bg-gray-900" />
-                    <span className="text-sm font-bold">첫 1주 · 스타트</span>
-                  </div>
-                  <div className="flex gap-2 text-[13px] leading-relaxed text-gray-600">
-                    <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
-                    <span>글로브/플릭스 가이드라인 숙지 및 테스팅</span>
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-gray-50 p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 flex-none rounded-[3px]"
-                      style={{ background: "#ED93B1" }}
-                    />
-                    <span className="text-sm font-bold">1~3개월 · 정착</span>
-                  </div>
-                  <div className="grid gap-2 text-[13px] leading-relaxed text-gray-600">
-                    {["브랜드 온보딩", "브랜드 온라인 미팅", "콘텐츠 검수"].map((t) => (
-                      <div key={t} className="flex gap-2">
-                        <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
-                        {t}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="rounded-xl bg-gray-50 p-4">
-                  <div className="mb-3 flex items-center gap-2">
-                    <span
-                      className="h-2.5 w-2.5 flex-none rounded-[3px]"
-                      style={{ background: "#993556" }}
-                    />
-                    <span className="text-sm font-bold">4~12개월 · 확장 &amp; 심화</span>
-                  </div>
-                  <div className="grid gap-2 text-[13px] leading-relaxed text-gray-600">
-                    {[
-                      "브랜드 콘텐츠 피드백",
-                      "브랜드 세일즈",
-                      "인플루언서 관리",
-                      "퍼포먼스 마케팅 (메타 광고 운영)",
-                      "AI 애니메이션 영상 제작",
-                    ].map((t) => (
-                      <div key={t} className="flex gap-2">
-                        <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
-                        {t}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-5 flex gap-2 border-t border-gray-100 pt-4 text-xs leading-relaxed text-gray-400">
-                <i className="ph ph-info-fill mt-0.5 flex-none" />
-                <span>
-                  고정된 업무 범위는 아니며, 개인 역량과 팀 상황에 따라 일정과 담당 업무는
-                  유연하게 조정됩니다.
-                </span>
-              </div>
-            </div>
-
-            <p className="mb-1 text-xs font-extrabold tracking-[0.14em] text-[color:var(--brand-pink)]">
               AFTER 1 YEAR
             </p>
-            <h2 className="mb-2 text-2xl font-extrabold tracking-tight">
-              인턴 1년을 마치면, 이런 직무와 잘 맞아요
+            <h2 className="mb-5 text-2xl font-extrabold tracking-tight">
+              1년 일하면, 다음과 같은 경험을 얻어요
             </h2>
-            <p className="mb-5 max-w-[660px] text-[13.5px] leading-relaxed text-gray-500">
-              각 직무 자격 요건 중 <b className="font-bold text-gray-700">경력 요건은 제외</b>하고,
-              인턴 1년간 실제 수행 업무와 <b className="font-bold text-gray-700">70% 이상 일치</b>
-              하면 잘 맞는 직무로 표시했어요. 데이터 분석 툴 활용 같은 기본 역량은 충족으로
-              간주합니다.
-            </p>
             <div className="grid grid-cols-[repeat(auto-fit,minmax(258px,1fr))] gap-4">
               {ROLE_FIT.map((r) => (
                 <div
@@ -746,21 +622,18 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
               ))}
             </div>
             <div className="mt-6 text-center">
-              <p className="mb-3 text-[17px] font-extrabold leading-snug text-[color:var(--brand-pink)]">
-                ★ 앤마들린 대표가 이용 브랜드 대표에게 직접 연락해 추천
-              </p>
               <Link
                 href="/brand-jobs/for-interns"
                 className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-[26px] py-3.5 text-[15px] font-bold text-white no-underline"
               >
                 {/* 모바일에서는 한 줄로 넣으면 버튼이 너무 넓어져 두 줄로 끊어 보여준다. */}
                 <span className="hidden sm:inline">
-                  인턴 종료 후 취업할 확률이 높은 글로브 이용 브랜드 공고 확인하기
+                  글로브 1년 경력이면 이런 채용 공고 요건을 대부분 만족해요
                 </span>
                 <span className="text-left leading-snug sm:hidden">
-                  인턴 종료 후 취업할 확률 높은
+                  글로브 1년 경력이면 이런
                   <br />
-                  글로브 이용 브랜드 공고 확인하기
+                  채용 공고 요건을 대부분 만족해요
                 </span>
                 <i className="ph-bold ph-arrow-right" />
               </Link>
