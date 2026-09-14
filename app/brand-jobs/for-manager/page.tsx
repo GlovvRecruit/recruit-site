@@ -75,7 +75,7 @@ export default async function ForInternsPage() {
           <span className="brand-gradient-text">커리어</span>
         </h1>
         <p className="mb-7 max-w-[600px] text-[15px] leading-relaxed text-gray-500">
-          글로브/플릭스 뷰티 전환형 매니저 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
+          글로브/플릭스 뷰티 매니저 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
         </p>
 
         {entryJobs.length === 0 ? (
