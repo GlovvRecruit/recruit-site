@@ -623,7 +623,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
             </div>
             <div className="mt-6 text-center">
               <Link
-                href="/brand-jobs/for-interns"
+                href="/brand-jobs/for-manager"
                 className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-[26px] py-3.5 text-[15px] font-bold text-white no-underline"
               >
                 {/* 모바일에서는 한 줄로 넣으면 버튼이 너무 넓어져 두 줄로 끊어 보여준다. */}

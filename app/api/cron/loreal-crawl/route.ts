@@ -5,7 +5,7 @@ import { parseDeadline } from "@/lib/crawler/deadline";
  * 로레알 자사 채용 페이지(careers.loreal.com) 크롤러.
  *
  * 로레알 채용팀이 자사 공고 게재를 요청해 추가했다(2026-08-27). 로레알은 글로브 이용 브랜드가
- * 아니므로 `/brand-jobs/for-interns`(글로브 이용 브랜드 전용) 에서는 제외된다 —
+ * 아니므로 `/brand-jobs/for-manager`(글로브 이용 브랜드 전용) 에서는 제외된다 —
  * `NON_GLOVV_BRANDS` 참고.
  *
  * 이 사이트는 PeopleFluent 계열 포털이라 목록이 JSON 엔드포인트로 내려온다.

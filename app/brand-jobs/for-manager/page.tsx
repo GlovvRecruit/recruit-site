@@ -15,7 +15,7 @@ export const metadata: Metadata = {
   title: "매니저로 일하며 쌓은 경력과 알맞는 커리어",
   description:
     "글로브를 이용하는 뷰티 브랜드 중, 전환형 매니저 경험을 살리기 좋은 신입·경력 무관·2년차 이하 채용 공고를 모았습니다.",
-  alternates: { canonical: "/brand-jobs/for-interns" },
+  alternates: { canonical: "/brand-jobs/for-manager" },
 };
 
 function isGlovvBrand(brand: Brand): boolean {
@@ -76,10 +76,6 @@ export default async function ForInternsPage() {
         </h1>
         <p className="mb-7 max-w-[600px] text-[15px] leading-relaxed text-gray-500">
           글로브/플릭스 뷰티 전환형 매니저 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
-          <br />
-          <b className="text-gray-700">
-            글로브/플릭스 대표가 직접 추천서를 작성해 해당 브랜드에 전달해요.
-          </b>
         </p>
 
         {entryJobs.length === 0 ? (
