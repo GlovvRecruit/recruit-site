@@ -424,7 +424,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
               }}
             >
               <h2 className="mb-4 text-2xl font-extrabold tracking-tight">
-                3개월 후 <span className="brand-gradient-text">전환 평가</span> 진행
+                인턴 3개월 후 <span className="brand-gradient-text">정규직 전환 평가</span> 진행
               </h2>
               <ul className="m-0 grid list-none gap-2.5 p-0">
                 {CONVERSION_NOTICE.map((line) => (
