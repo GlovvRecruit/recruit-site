@@ -123,7 +123,7 @@ type JobSection = {
 const INTERN_HIRING_FLOW: JobStep[] = [
   { label: "지원" },
   { label: "서류 평가", note: "영업일 기준 하루 이내 안내" },
-  { label: "오프라인 면접", note: "서울특별시 용산구 보광로60길 3 이화빌딩 2층" },
+  { label: "온라인 면접", note: "Google Meet" },
   { label: "1차 합격" },
   { label: "일주일 테스팅", note: "유급" },
   { label: "최종 합격" },
