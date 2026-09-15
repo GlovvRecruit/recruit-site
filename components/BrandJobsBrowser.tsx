@@ -61,9 +61,9 @@ export default function BrandJobsBrowser({
   /** 전달되면 이 목록의 모든 카드에 컨트롤드 하트 상태를 적용한다(테스트 페이지의 "내 관심 공고" 전용). */
   likedJobIds?: Set<string>;
   onToggleLike?: (jobId: string, nextLiked: boolean) => void;
-  /** 목록 제목. 페이지 성격에 맞게 바꿔 쓴다(예: 전환형 매니저 페이지의 "2년차 이하 공고"). */
+  /** 목록 제목. 페이지 성격에 맞게 바꿔 쓴다(예: 전환형 인턴 페이지의 "2년차 이하 공고"). */
   heading?: string;
-  /** 노출할 직무 필터. 전환형 매니저 페이지처럼 "기타"를 아예 빼야 하는 화면에서 좁혀 쓴다. */
+  /** 노출할 직무 필터. 전환형 인턴 페이지처럼 "기타"를 아예 빼야 하는 화면에서 좁혀 쓴다. */
   categoryOptions?: readonly JobCategory[];
 }) {
   const [filter, setFilter] = useState<JobCategory | null>(null);

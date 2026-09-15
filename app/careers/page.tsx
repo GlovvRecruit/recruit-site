@@ -7,9 +7,9 @@ import FaqAccordion from "@/components/FaqAccordion";
 import { getCareersJobs } from "@/lib/data";
 
 export const metadata: Metadata = {
-  title: "글로브 채용·플릭스 채용 | 뷰티 취업·전환형 매니저·정규직 자사 채용",
+  title: "글로브 채용·플릭스 채용 | 뷰티 취업·전환형 인턴·정규직 자사 채용",
   description:
-    "글로브 채용, 플릭스 채용 정보를 한 곳에서 확인하세요. 뷰티 업계 취업을 준비한다면 전환형 매니저와 정규직 채용에 지원해보세요. 이력서 없이도 3분 만에 지원할 수 있어요.",
+    "글로브 채용, 플릭스 채용 정보를 한 곳에서 확인하세요. 뷰티 업계 취업을 준비한다면 전환형 인턴과 정규직 채용에 지원해보세요. 이력서 없이도 3분 만에 지원할 수 있어요.",
   alternates: { canonical: "/careers" },
 };
 
@@ -33,7 +33,7 @@ const INTERN_STEPS = [
 const FAQS = [
   {
     q: "경력이 없어도 지원할 수 있나요?",
-    a: "네. 전환형 매니저·신입 포지션은 경력이 없어도 지원 가능합니다. 뷰티 산업에 대한 관심과 성장 의지를 가장 중요하게 봅니다.",
+    a: "네. 전환형 인턴·신입 포지션은 경력이 없어도 지원 가능합니다. 뷰티 산업에 대한 관심과 성장 의지를 가장 중요하게 봅니다.",
   },
   {
     q: "포트폴리오는 필수인가요?",
@@ -139,7 +139,7 @@ export default async function CareersPage() {
           ))}
         </div>
 
-        <h2 className="mb-1 text-xl font-extrabold tracking-tight">전환형 매니저 채용 프로세스</h2>
+        <h2 className="mb-1 text-xl font-extrabold tracking-tight">전환형 인턴 채용 프로세스</h2>
         <p className="mb-[18px] text-sm text-gray-500">지원부터 최종 합격까지, 2주일 이내로 진행됩니다.</p>
         <div className="mb-[52px] flex gap-2.5 overflow-x-auto pb-2">
           {INTERN_STEPS.map((s) => (

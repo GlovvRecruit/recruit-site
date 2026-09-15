@@ -12,9 +12,9 @@ import type { Brand, JobCategory } from "@/lib/types";
 const INTERN_PAGE_CATEGORIES: readonly JobCategory[] = ["마케팅", "MD", "BM·PM", "운영", "세일즈"];
 
 export const metadata: Metadata = {
-  title: "매니저로 일하며 쌓은 경력과 알맞는 커리어",
+  title: "인턴으로 일하며 쌓은 경력과 알맞는 커리어",
   description:
-    "글로브를 이용하는 뷰티 브랜드 중, 전환형 매니저 경험을 살리기 좋은 신입·경력 무관·2년차 이하 채용 공고를 모았습니다.",
+    "글로브를 이용하는 뷰티 브랜드 중, 전환형 인턴 경험을 살리기 좋은 신입·경력 무관·2년차 이하 채용 공고를 모았습니다.",
   alternates: { canonical: "/brand-jobs/for-manager" },
 };
 
@@ -71,11 +71,11 @@ export default async function ForInternsPage() {
           NEXT STEP
         </p>
         <h1 className="mb-2 mt-2.5 max-w-[720px] text-[32px] font-extrabold leading-[1.22] tracking-tight">
-          매니저로 일하며 쌓은 경력과 알맞는{" "}
+          인턴으로 일하며 쌓은 경력과 알맞는{" "}
           <span className="brand-gradient-text">커리어</span>
         </h1>
         <p className="mb-7 max-w-[600px] text-[15px] leading-relaxed text-gray-500">
-          글로브/플릭스 뷰티 매니저 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
+          글로브/플릭스 뷰티 인턴 경험을 살리기 좋은 신입·경력 무관·2년차 이하 공고를 모아봤어요.
         </p>
 
         {entryJobs.length === 0 ? (

@@ -5,13 +5,13 @@ import type { CareersJob, MediaLink, InsightLink } from "@/lib/types";
 export const sampleCareersJobs: CareersJob[] = [
   {
     id: "c1",
-    title: "글로브/플릭스 뷰티 전환형 매니저",
-    tag: "매니저",
+    title: "글로브/플릭스 뷰티 전환형 인턴",
+    tag: "인턴",
     employmentType: "intern",
     summary:
       "대부분의 올리브영 입점 브랜드(2,000개+) 마케팅을 직접 경험하는 곳. 이력서 없이도 30초 만에 지원 가능.",
     bodyHtml: "",
-    employment: "매니저 (3개월 후 정규직 전환 평가)",
+    employment: "인턴 (3개월 후 정규직 전환 평가)",
     location: "서울 용산구 이태원 · 사무실 출근",
     status: "open",
     hashtags: "#1년 후 정규직 전환 검토 #서울 용산구 이태원 사무실 출근 #선착순 마감",

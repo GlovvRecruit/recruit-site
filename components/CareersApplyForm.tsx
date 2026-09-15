@@ -132,7 +132,7 @@ export default function CareersApplyForm() {
             {JOB_CATEGORIES.map((c) => (
               <option key={c}>{c}</option>
             ))}
-            <option>전환형 매니저·기획</option>
+            <option>인턴·기획</option>
           </select>
         </label>
         <label className="block">
