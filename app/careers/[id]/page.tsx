@@ -704,23 +704,6 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                 </div>
               ))}
             </div>
-            <div className="mt-6 text-center">
-              <Link
-                href="/brand-jobs/for-manager"
-                className="inline-flex items-center gap-2 rounded-xl bg-gray-900 px-[26px] py-3.5 text-[15px] font-bold text-white no-underline"
-              >
-                {/* 모바일에서는 한 줄로 넣으면 버튼이 너무 넓어져 두 줄로 끊어 보여준다. */}
-                <span className="hidden sm:inline">
-                  글로브 1년 경력이면 이런 채용 공고 요건을 대부분 만족해요
-                </span>
-                <span className="text-left leading-snug sm:hidden">
-                  글로브 1년 경력이면 이런
-                  <br />
-                  채용 공고 요건을 대부분 만족해요
-                </span>
-                <i className="ph-bold ph-arrow-right" />
-              </Link>
-            </div>
           </section>
         )}
 
