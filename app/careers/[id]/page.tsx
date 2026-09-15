@@ -544,13 +544,22 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
             </h2>
 
             <div className="mb-[52px] rounded-2xl border border-gray-200 bg-white p-7">
-              <div className="mb-1.5 flex items-baseline justify-between text-xs text-gray-400">
+              <div className="relative mb-1.5 flex items-baseline justify-between text-xs text-gray-400">
                 <span>인턴</span>
-                <span className="inline-flex items-center gap-1.5">
-                  1년 차
+                {/*
+                  전환 평가는 3개월 시점에 있다. 아래 막대가 8% + flex1 + flex3 비율이라
+                  3개월 경계는 8% + 92%×(1/4) = 31% 지점이다. 그 위에 겹쳐 세워, 양옆 라벨
+                  간격에 영향을 주지 않으면서 경계에 정확히 붙인다.
+                */}
+                <span
+                  className="absolute bottom-0 flex items-center gap-1.5 whitespace-nowrap"
+                  style={{ left: "31%", transform: "translateX(-50%)" }}
+                >
+                  3개월
                   <i className="ph-bold ph-check text-[13px] text-[color:var(--brand-pink)]" />
                   <b className="brand-gradient-text text-[13px] font-extrabold">전환 평가</b>
                 </span>
+                <span>1년 차</span>
               </div>
               <div className="mb-2.5 flex h-[46px] w-full overflow-hidden rounded-[10px]">
                 <div
@@ -603,7 +612,7 @@ export default async function CareersDetailPage(props: PageProps<"/careers/[id]"
                     <span className="text-sm font-bold">1~3개월 · 정착</span>
                   </div>
                   <div className="grid gap-2 text-[13px] leading-relaxed text-gray-600">
-                    {["브랜드 온보딩", "브랜드 온라인 미팅", "콘텐츠 검수"].map((t) => (
+                    {["브랜드 미팅 : 글로브/플릭스 사용법 설명", "콘텐츠 검수"].map((t) => (
                       <div key={t} className="flex gap-2">
                         <i className="ph-bold ph-check mt-0.5 flex-none text-[color:var(--brand-pink)]" />
                         {t}
